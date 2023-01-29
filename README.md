@@ -4,13 +4,13 @@ Convert your `.tex` Jekyll content.
 
 ## Introduction
 
-This plugin integrate your local TeX distribution with Jekyll to convert `.tex` to `.html`. Feel free to write any TeX/LaTeX in your Jekyll sites.
+This plugin integrate Jekyll with your local TeX distribution to convert `.tex` to `.html`. Feel free to write any TeX/LaTeX in your Jekyll sites.
 
 ## Installation
 
 First of all, you need to have a TeX distribution. Just download and install [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/).
 
-Then, add this line to your application's Gemfile:
+Then, install the plugin just as other Jekyll plugins. Add this line to your application's Gemfile:
 
 ```ruby
 gem 'jekyll-tex-converter'

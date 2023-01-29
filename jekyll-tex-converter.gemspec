@@ -14,7 +14,8 @@ Gem::Specification.new do |s|
         "lib/jekyll-tex-converter/version.rb",
         "lib/jekyll/converters/tex.rb",
 
-        "script/build-file.lua",
+        "script/build-normal.lua",
+        "script/build-inline.lua",
 
         "LICENSE",
         "README.md"

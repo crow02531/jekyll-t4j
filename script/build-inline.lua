@@ -5,18 +5,15 @@ local process = filter {
     function(str)
         local dom = domobj.parse(str):query_selector("body")[1]
 
-        --inline svg
+        -- inline all generated svg files
         for _, img in ipairs(dom:query_selector "img") do
             local filename = img:get_attribute "src" or ""
 
-            if filename:match("svg$") then
+            if filename:match("[^/\\]*.svg$") then
                 local file = io.open(filename, "r")
-
-                if file then
-                    local chs = domobj.parse(file:read("*all")):root_node():get_children()
-                    img:replace_node(chs[#chs])
-                    file:close()
-                end
+                local chs = domobj.parse(file:read("*all")):root_node():get_children()
+                img:replace_node(chs[#chs])
+                file:close()
             end
         end
 

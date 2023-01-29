@@ -10,8 +10,8 @@ module Jekyll
 end
 
 # disable excerpt for '.tex'
-Jekyll::Hooks.register :documents, :post_init do |post|
-    if post.extname == ".tex"
-        post.data["excerpt_separator"] = ""
+Jekyll::Hooks.register :documents, :post_init do |doc|
+    if doc.extname =~ Jekyll::Converters::Tex::EXTENSION_PATTERN
+        doc.data["excerpt_separator"] = ""
     end
 end

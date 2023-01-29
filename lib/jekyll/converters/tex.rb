@@ -1,6 +1,8 @@
 module Jekyll
     module Converters
         class Tex < Converter
+            EXTENSION_PATTERN = /^\.tex$/i.freeze
+
             def setup
                 return if @setup
 
@@ -18,24 +20,33 @@ module Jekyll
             end
 
             def matches(ext)
-                ext =~ /^\.tex$/i
+                ext =~ EXTENSION_PATTERN
             end
 
             def output_ext(ext)
                 ".html"
             end
 
+            # merge css
+            Jekyll::Hooks.register :documents, :post_render do |doc|
+                return unless doc.extname =~ EXTENSION_PATTERN
+                src = doc.output
+
+                # inline css
+                doc.output = src.insert(src.index("<head>") + 6, "<style>" + File.read(".tex-cache/content.css") + "</style>")
+            end
+
             def convert(content)
                 setup
 
-                # write content to 'page.tex'.
-                File.open(".tex-cache/page.tex", "w") {|f| f.write(content)}
+                # write content to 'content.tex'.
+                File.open(".tex-cache/content.tex", "w") {|f| f.write(content)}
 
-                # call `make4ht`.
-                system("make4ht -m draft -e #{Jekyll::TexConverter::ROOT}/script/build-file.lua page.tex \"-css,no-DOCTYPE\"", :chdir=>".tex-cache", [:out, :err]=>File::NULL, exception: true)
+                # call `make4ht` build system.
+                system("make4ht -m draft -e #{Jekyll::TexConverter::ROOT}/script/build-file.lua content.tex", :chdir=>".tex-cache", [:out, :err]=>File::NULL, exception: true)
 
-                # fetch content from 'page.html'.
-                File.read(".tex-cache/page.html")
+                # fetch content from 'content.html'.
+                File.read(".tex-cache/content.html")
             end
         end
     end

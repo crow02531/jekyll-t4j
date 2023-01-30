@@ -56,11 +56,9 @@ module Jekyll
 
                 dist.setup(content)
                 dist.compile(should_inline? ? "inline" : "normal")
-                result = dist.output
+                (@cache[@processing.url] = dist.output)[:body]
+            ensure
                 dist.unlink
-
-                @cache[@processing.url] = result
-                result[:body]
             end
 
             def post_convert

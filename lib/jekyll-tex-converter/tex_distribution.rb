@@ -4,8 +4,24 @@ module Jekyll
     module TexConverter
         class TexDist
 
+            @@passed = "unknown"
+
+            def self.has_env
+                @@passed = system "make4ht -v", [:out, :err]=>File::NULL if @@passed == "unknown"
+                @@passed
+            end
+
+            def self.check_env
+                unless TexDist.has_env
+                    STDERR.puts "You are missing a TeX distribution. Please install:"
+                    STDERR.puts "  MiKTeX or TeX Live"
+                    raise Errors::FatalException.new("Missing TeX distribution")
+                end
+            end
+
             def setup(input)
-                unlink if @pwd
+                TexDist.check_env
+                unlink
                 @pwd = Dir.mktmpdir
                 File.write "#{@pwd}/content.tex", input
             end
@@ -40,7 +56,7 @@ module Jekyll
             end
 
             def unlink
-                FileUtils.remove_entry @pwd
+                FileUtils.remove_entry @pwd if @pwd
                 @pwd = nil
                 @result = nil
             end

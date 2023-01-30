@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
     s.files = [
         "lib/jekyll-tex-converter.rb",
         "lib/jekyll-tex-converter/version.rb",
+        "lib/jekyll-tex-converter/tex_distribution.rb",
         "lib/jekyll/converters/tex.rb",
 
         "script/build-normal.lua",

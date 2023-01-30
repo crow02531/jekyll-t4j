@@ -4,7 +4,9 @@ Convert your `.tex` Jekyll content.
 
 ## Introduction
 
-This plugin integrate Jekyll with your local TeX distribution to convert `.tex` to `.html`. Feel free to write any TeX/LaTeX in your Jekyll sites.
+This plugin integrate Jekyll with your local TeX distribution to convert `.tex` to `.html`. If you find MathJax or KaTeX can not cover your needs to write complex articles(i.e. LaTeX using chemfig) in Jekyll, this plugin may help you a lot.
+
+Feel free to write any LaTeX! &#x1F389;
 
 ## Installation
 

@@ -28,7 +28,7 @@ module Jekyll
 
             def compile(mode)
                 # call `make4ht` build system.
-                system "make4ht -lm draft -e #{TexConverter::ROOT}/script/build-#{mode}.lua content.tex", :chdir=>@pwd, [:out, :err]=>File::NULL, exception: true
+                system "make4ht -xm draft -e #{TexConverter::ROOT}/script/build-#{mode}.lua content.tex", :chdir=>@pwd, [:out, :err]=>File::NULL, exception: true
 
                 # fetch result.
                 body = File.read "#{@pwd}/content.html"

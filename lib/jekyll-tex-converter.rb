@@ -1,6 +1,7 @@
 require "jekyll"
 
 require "jekyll-tex-converter/version"
+require "jekyll-tex-converter/engine"
 require "jekyll-tex-converter/tex_distribution"
 require "jekyll/converters/tex"
 

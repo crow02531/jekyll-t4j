@@ -39,26 +39,18 @@ module Jekyll
                 ".html"
             end
 
-            def self.should_inline?(doc)
-                !doc.url.end_with? "/"
-            end
-
-            def should_inline?
-                Tex.should_inline?(@processing)
-            end
-
             def pre_convert(doc)
                 @processing = doc
             end
 
             def convert(content)
-                dist = Jekyll::TexConverter::TexDist.new
+                engine = Jekyll::TexConverter::Engine.choose(content).new
 
-                dist.setup(content)
-                dist.compile(should_inline? ? "inline" : "normal")
-                (@cache[@processing.url] = dist.output)[:body]
+                engine.setup(content)
+                engine.compile
+                (@cache[@processing.url] = engine.output)[:body]
             ensure
-                dist.unlink
+                engine.unlink
             end
 
             def post_convert
@@ -68,10 +60,11 @@ module Jekyll
             end
 
             def post_write(doc)
-                return if Tex.should_inline? doc
+                url = doc.url
+                url = File.dirname url unless url.end_with? "/"
 
-                (@cache[doc.url])[:external].each { |k, v|
-                    File.write File.join("_site", doc.url, k), v
+                (@cache[doc.url])[:external].each {|k, v|
+                    File.write File.join("_site", url, k), v
                 }
             end
 

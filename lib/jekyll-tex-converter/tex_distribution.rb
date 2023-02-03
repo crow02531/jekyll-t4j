@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tmpdir"
 
 module Jekyll
@@ -28,7 +30,7 @@ module Jekyll
 
             def compile
                 # call `make4ht` build system.
-                system "make4ht -m draft -e #{TexConverter::ROOT}/script/build-file.lua content.tex", :chdir=>@pwd, [:out, :err]=>File::NULL, exception: true
+                system "make4ht -lm draft -e #{TexConverter::ROOT}/script/build-file.lua content.tex \"fancylogo\"", :chdir=>@pwd, [:out, :err]=>File::NULL, exception: true
 
                 # fetch result.
                 body = File.read "#{@pwd}/content.html"

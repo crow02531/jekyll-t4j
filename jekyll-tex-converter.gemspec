@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "lib/jekyll-tex-converter/version"
 
 Gem::Specification.new do |s|
@@ -14,6 +16,7 @@ Gem::Specification.new do |s|
         "lib/jekyll-tex-converter/version.rb",
         "lib/jekyll-tex-converter/engine.rb",
         "lib/jekyll-tex-converter/tex_distribution.rb",
+        "lib/jekyll-tex-converter/latex_js.rb",
         "lib/jekyll/converters/tex.rb",
 
         "script/build-file.lua",

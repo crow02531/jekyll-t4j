@@ -1,15 +1,18 @@
+# frozen_string_literal: true
+
 require "jekyll"
 
 require "jekyll-tex-converter/version"
 require "jekyll-tex-converter/engine"
 require "jekyll-tex-converter/tex_distribution"
+require "jekyll-tex-converter/latex_js.rb"
 require "jekyll/converters/tex"
 
 module Jekyll
     module TexConverter
 
         # the absolute path of the gem
-        ROOT = File.expand_path("../", File.dirname(__FILE__))
+        ROOT = File.expand_path("../", File.dirname(__FILE__)).freeze
     end
 end
 

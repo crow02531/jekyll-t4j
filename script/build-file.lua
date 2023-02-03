@@ -28,11 +28,11 @@ local process = filter {
         for _, img in ipairs(dom:query_selector "img") do
             local filename = img:get_attribute "src" or ""
 
-            if filename:match "[^/\\]*.svg$" then
-                img:set_attribute("src", rename_file(filename)) --rename svg
+            if filename:match("[^/\\]*.svg$") and io.exists(filename) then
+                img:set_attribute("src", rename_file(filename))
             end
         end
-        rename_file(settings.tex_file:gsub("%.[^/.]+$", ".css")) --rename css
+        rename_file(settings.tex_file:gsub("%.[^/.]+$", ".css"))
 
         str = dom:serialize()
         return str:sub(7, #str - 8) --trim '<body>...</body>'

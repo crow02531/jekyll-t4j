@@ -34,16 +34,13 @@ module Jekyll
 
                 # fetch result.
                 body = File.read "#{@pwd}/content.html"
-                head = ""
-                external = {}
+                css_name = Engine.rndname << ".css"
+                head = "<link rel=\"stylesheet\" href=\"#{css_name}\">"
+                external = {css_name => File.read("#{@pwd}/content.css")}
+                Dir.glob("#{@pwd}/*.svg").each {|p| external[File.basename p] = File.read p}
 
-                Dir.glob("#{@pwd}/*.{svg,css}").each {|path|
-                    external[File.basename path] = File.read path
-                    head = "<link rel=\"stylesheet\" href=\"#{File.basename path}\">" if path.end_with? "css"
-                }
-
-                external = external.freeze
-                @result = {body:, head:, external:}.freeze
+                @result = {head:, body:, external:}
+                freeze_result
             end
 
             def output

@@ -24,7 +24,7 @@ local process = filter {
     function(str)
         local dom = domobj.parse(str):query_selector("body")[1]
 
-        --rename all external files
+        --rename all svg files
         for _, img in ipairs(dom:query_selector "img") do
             local filename = img:get_attribute "src" or ""
 
@@ -32,13 +32,11 @@ local process = filter {
                 img:set_attribute("src", rename_file(filename))
             end
         end
-        rename_file(settings.tex_file:gsub("%.[^/.]+$", ".css"))
 
         str = dom:serialize()
         return str:sub(7, #str - 8) --trim '<body>...</body>'
     end
 }
 
-Make:enable_extension "detect_engine"
 Make:enable_extension "dvisvgm_hashes"
 Make:match("html$", process)

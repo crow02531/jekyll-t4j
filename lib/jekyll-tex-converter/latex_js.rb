@@ -3,6 +3,8 @@
 module Jekyll
     module TexConverter
         class LatexJS < Engine
+            VERSION = "0.12.4"
+
             SUPPORTED_PACKAGES = [
                 "color",
                 "xcolor",
@@ -19,11 +21,7 @@ module Jekyll
                 "comment",
                 "calc",
                 "pict2e",
-                "picture",
-                "babel",
-                "fontspec",
-                "ctex",
-                "cjk",
+                "picture"
             ].freeze
 
             def setup(input)
@@ -32,7 +30,24 @@ module Jekyll
             end
 
             def compile
-                
+                filename = Engine.rndname << ".tex"
+                head = "<script src=\"https://unpkg.com/latex.js@#{VERSION}/dist/latex.js\"></script>"
+                body = <<~HEREDOC
+                    <script>
+                        fetch("#{filename}")
+                        .then(response => response.text())
+                        .then(tex => {
+                            let gen = latexjs.parse(tex, { generator: new latexjs.HtmlGenerator() })
+
+                            document.head.appendChild(gen.stylesAndScripts("https://unpkg.com/latex.js@#{VERSION}/dist/"))
+                            document.body.firstElementChild.remove()
+                            document.body.appendChild(gen.domFragment())
+                        })
+                    </script>
+                HEREDOC
+
+                @result = {head:, body:, :external => {filename => @input}}
+                freeze_result
             end
 
             def output

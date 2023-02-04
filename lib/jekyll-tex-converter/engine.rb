@@ -31,6 +31,22 @@ module Jekyll
 
                 ret
             end
+
+            @@rnd_range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@".chars
+
+            def self.rndname
+                @@rnd_range.sample(22).join.prepend "_"
+            end
+
+            def freeze_result
+                r = output
+
+                r.freeze
+                r.each_value {|v| v.freeze}
+                r[:external].each_value {|v| v.freeze}
+            end
+
+            protected :freeze_result
         end
     end
 end

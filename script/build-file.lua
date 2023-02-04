@@ -28,7 +28,7 @@ local process = filter {
         for _, img in ipairs(dom:query_selector "img") do
             local filename = img:get_attribute "src" or ""
 
-            if filename:match("[^/\\]*.svg$") and io.exists(filename) then
+            if filename:match("[^/\\]*.svg$") then
                 img:set_attribute("src", rename_file(filename))
             end
         end

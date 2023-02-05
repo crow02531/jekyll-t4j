@@ -4,19 +4,6 @@ module Jekyll
     module T4J
         class Engine
 
-            # Choose a suitable Engine based on the given sample.
-            #
-            # @param [String] sample a latex document
-            # @return [Class] a subclass of Engine, never be nil
-            def self.choose(sample)
-                analyzer = Analyzer.new sample
-
-                return T4J::Dvisvgm if analyzer.graph_oriented?
-                return T4J::LatexJS if (analyzer.packages - LatexJS::SUPPORTED_PACKAGES).empty?
-
-                T4J::TeX4ht
-            end
-
             @@passed = nil
 
             # Check if there is a tex distribution in the computer.

@@ -3,15 +3,16 @@
 module Jekyll
     module T4J
         class Dvisvgm < Engine
-
-            def initialize
+            def self.compile(analyzer)
                 Engine.check_tex
-            end
 
-            def convert(src)
                 # setup.
                 pwd = Dir.mktmpdir
-                File.write "#{pwd}/content.tex", src
+                f = File.open "#{pwd}/content.tex"
+                f.write analyzer.preamble
+                f.write "\\pagenumbering{gobble}" # disable page numbering
+                f.write analyzer.body
+                f.close
 
                 # call 'dvilualatex' to get dvi file.
                 system "dvilualatex --draftmode --halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
@@ -19,9 +20,9 @@ module Jekyll
                 system "dvisvgm --bbox=min content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
                 # fetch result.
-                filename = Engine.rndname << ".svg"
-                body = "<img src=\"#{filename}\">"
-                external = {filename => File.read("#{pwd}/content.svg")}
+                f = Engine.rndname << ".svg"
+                body = "<img src=\"#{f}\">"
+                external = {f => File.read("#{pwd}/content.svg")}
 
                 # return.
                 {body:, external:}

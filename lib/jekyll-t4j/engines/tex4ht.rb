@@ -5,24 +5,24 @@ require "tmpdir"
 module Jekyll
     module T4J
         class TeX4ht < Engine
-
-            def initialize
+            def self.compile(analyzer)
                 Engine.check_tex
-            end
 
-            def convert(src)
                 # setup.
                 pwd = Dir.mktmpdir
-                File.write "#{pwd}/content.tex", src
+                f = File.open "#{pwd}/content.tex"
+                f.write analyzer.preamble
+                f.write analyzer.body
+                f.close
 
                 # call `make4ht` build system.
                 system "make4ht -lm draft -e #{TexConverter::ROOT}/script/build-file.lua content.tex \"fancylogo\"", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
                 # fetch result.
                 body = File.read "#{pwd}/content.html"
-                css_name = Engine.rndname << ".css"
-                head = "<link rel=\"stylesheet\" href=\"#{css_name}\">"
-                external = {css_name => File.read("#{pwd}/content.css")}
+                f = Engine.rndname << ".css"
+                head = "<link rel=\"stylesheet\" href=\"#{f}\">"
+                external = {f => File.read("#{pwd}/content.css")}
                 Dir.glob("#{pwd}/*.svg").each {|p| external[File.basename p] = File.read p}
 
                 # return.

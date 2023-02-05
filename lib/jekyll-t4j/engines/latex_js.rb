@@ -24,7 +24,7 @@ module Jekyll
                 "picture"
             ].freeze
 
-            def convert(src)
+            def self.compile(analyzer)
                 filename = Engine.rndname << ".tex"
                 head = "<script src=\"https://unpkg.com/latex.js@#{VERSION}/dist/latex.js\"></script>"
                 body = <<~HEREDOC
@@ -40,7 +40,7 @@ module Jekyll
                     </script>
                 HEREDOC
 
-                {head:, body:, :external => {filename => src}}
+                {head:, body:, :external => {filename => analyzer.preamble + analyzer.body}}
             end
         end
     end

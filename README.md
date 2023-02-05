@@ -6,11 +6,11 @@ TeX/LaTeX support for Jekyll.
 
 This plugin integrate Jekyll with several (la)tex2html/(la)tex2svg conversion engines to convert your latex content. If you find MathJax or KaTeX can not cover your needs to write complex articles(i.e. LaTeX using chemfig), this plugin may help you a lot.
 
-Feel free to write any LaTeX! &#x1F389;&#x1F389;
+Feel free to write any LaTeX! &#x1F389;
 
 ## Usage
 
-Currently I provide two ways to use jekyll-t4j.
+Currently there are two ways to use jekyll-t4j.
 
 ### 1. `.tex` File
 
@@ -33,7 +33,16 @@ Then build your site, complete!
 
 ### 2. `tex_snippet` Liquid Tag
 
-TODO
+If you just want to embed a piece of equation or tikz generated picture in `.md` or `.html`. You may love `tex_snippet`. Its usage is pretty simple.
+
+```
+<!-- In a markdown file -->
+{% tex_snippet chemfig %}
+    \chemfig{C(-[:135])(<:[:200])(<[:-130])-\charge{[circle]10=\:,80=\:}{O}-[:-60]H}
+{% endtex_snippet %}
+```
+
+The tag `tex_snippet` receives package names as argument(multiple packages are seperated by `,` i.e. `chemfig,mhchem`). And you don't need to write `\documentclass{article}\begin{document}...\end{document}`.
 
 ## Installation
 

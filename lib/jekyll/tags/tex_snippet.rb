@@ -15,7 +15,9 @@ module Jekyll
                 src.prepend "\\documentclass{article}", "\\usepackage{#{@packages}}", "\\begin{document}"
                 src << "\\end{document}"
 
-                result = Jekyll::T4J::Engine.choose(src).new.convert(src)
+                analyzer = Jekyll::T4J::Analyzer.new src
+                result = analyzer.suitable_engine.compile(analyzer)
+
                 Jekyll::Merger.request(context.registers[:page][:url], result[:head], result[:external])
                 result[:body]
             end

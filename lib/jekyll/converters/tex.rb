@@ -37,7 +37,8 @@ module Jekyll
             end
 
             def convert(content)
-                result = Jekyll::T4J::Engine.choose(content).new.convert(content)
+                analyzer = Jekyll::T4J::Analyzer.new content
+                result = analyzer.suitable_engine.compile(analyzer)
 
                 Jekyll::Merger.request(@processing_url, result[:head], result[:external])
                 @processing_url = nil

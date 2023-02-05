@@ -32,6 +32,13 @@ module Jekyll
             def graph_oriented?
                 # TODO
             end
+
+            def suitable_engine
+                return T4J::Dvisvgm if graph_oriented?
+                return T4J::LatexJS if (packages - LatexJS::SUPPORTED_PACKAGES).empty?
+
+                T4J::TeX4ht
+            end
         end
     end
 end

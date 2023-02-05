@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Jekyll
-    module TexConverter
+    module T4J
         class LatexJS < Engine
             VERSION = "0.12.4"
 
@@ -24,39 +24,23 @@ module Jekyll
                 "picture"
             ].freeze
 
-            def setup(input)
-                @input = input
-                @result = nil
-            end
-
-            def compile
+            def convert(src)
                 filename = Engine.rndname << ".tex"
                 head = "<script src=\"https://unpkg.com/latex.js@#{VERSION}/dist/latex.js\"></script>"
                 body = <<~HEREDOC
-                    <script>
+                    <script id="#{filename}">
                         fetch("#{filename}")
                         .then(response => response.text())
                         .then(tex => {
                             let gen = latexjs.parse(tex, { generator: new latexjs.HtmlGenerator() })
 
                             document.head.appendChild(gen.stylesAndScripts("https://unpkg.com/latex.js@#{VERSION}/dist/"))
-                            document.body.firstElementChild.remove()
-                            document.body.appendChild(gen.domFragment())
+                            document.getElementById("#{filename}").replaceWith(gen.domFragment())
                         })
                     </script>
                 HEREDOC
 
-                @result = {head:, body:, :external => {filename => @input}}
-                freeze_result
-            end
-
-            def output
-                @result
-            end
-
-            def unlink
-                @input = nil
-                @result = nil
+                {head:, body:, :external => {filename => src}}
             end
         end
     end

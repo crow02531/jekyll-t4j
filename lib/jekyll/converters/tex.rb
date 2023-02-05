@@ -5,11 +5,9 @@ module Jekyll
         class Tex < Converter
             EXTENSION_PATTERN = /^\.tex$/i.freeze
 
-            # called by Jekyll system
             def initialize(config = {})
                 super
 
-                @cache = {}
                 @@instance = self
             end
 
@@ -17,20 +15,13 @@ module Jekyll
                 @@instance
             end
 
+            # disable excerpt for '.tex'
+            Jekyll::Hooks.register :documents, :post_init do |doc|
+                doc.data["excerpt_separator"] = "" if doc.extname =~ EXTENSION_PATTERN
+            end
+
             Jekyll::Hooks.register :documents, :pre_render do |doc|
                 Jekyll::Converters::Tex.instance.pre_convert(doc) if doc.extname =~ EXTENSION_PATTERN
-            end
-
-            Jekyll::Hooks.register :documents, :post_render do |doc|
-                Jekyll::Converters::Tex.instance.post_convert if doc.extname =~ EXTENSION_PATTERN
-            end
-
-            Jekyll::Hooks.register :documents, :post_write do |doc|
-                Jekyll::Converters::Tex.instance.post_write(doc) if doc.extname =~ EXTENSION_PATTERN
-            end
-
-            Jekyll::Hooks.register :site, :post_write do
-                Jekyll::Converters::Tex.instance.post_generation
             end
 
             def matches(ext)
@@ -42,36 +33,15 @@ module Jekyll
             end
 
             def pre_convert(doc)
-                @processing = doc
+                @processing_url = doc.url
             end
 
             def convert(content)
-                engine = Jekyll::TexConverter::Engine.choose(content).new
+                result = Jekyll::T4J::Engine.choose(content).new.convert(content)
 
-                engine.setup(content)
-                engine.compile
-                (@cache[@processing.url] = engine.output)[:body]
-            ensure
-                engine.unlink
-            end
-
-            def post_convert
-                doc = @processing
-                doc.output = doc.output.insert(doc.output.index("<head>") + 6, (@cache[doc.url])[:head])
-                @processing = nil
-            end
-
-            def post_write(doc)
-                url = doc.url
-                url = File.dirname url unless url.end_with? "/"
-
-                (@cache[doc.url])[:external].each {|k, v|
-                    File.write File.join("_site", url, k), v
-                }
-            end
-
-            def post_generation
-                @cache.clear
+                Jekyll::Merger.request(@processing_url, result[:head], result[:external])
+                @processing_url = nil
+                result[:body]
             end
         end
     end

@@ -1,14 +1,18 @@
-# Jekyll::TexConverter
+# Jekyll::T4J
 
-Convert your `.tex` Jekyll content.
+TeX/LaTeX support for Jekyll.
 
 ## Introduction
 
-This plugin integrate Jekyll with several latex2html engines to convert `.tex` to `.html`. If you find MathJax or KaTeX can not cover your needs to write complex articles(i.e. LaTeX using chemfig), this plugin may help you a lot.
+This plugin integrate Jekyll with several (la)tex2html/(la)tex2svg conversion engines to convert your latex content. If you find MathJax or KaTeX can not cover your needs to write complex articles(i.e. LaTeX using chemfig), this plugin may help you a lot.
 
-Feel free to write any LaTeX! &#x1F389;
+Feel free to write any LaTeX! &#x1F389;&#x1F389;
 
 ## Usage
+
+Currently I provide two ways to use jekyll-t4j.
+
+### 1. `.tex` File
 
 For instance, write a post `2023-02-04-hello-latex.tex` and fill it with
 
@@ -27,14 +31,18 @@ Hi! This is \LaTeX{}.
 
 Then build your site, complete!
 
+### 2. `tex_snippet` Liquid Tag
+
+TODO
+
 ## Installation
 
 First of all, you need to have a TeX distribution. Just download and install [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/).
 
-Then, install the plugin just as other Jekyll plugins. Add this line to your application's Gemfile:
+Then, install jekyll-t4j just as other Jekyll plugins. Add this line to your application's Gemfile:
 
 ```ruby
-gem 'jekyll-tex-converter'
+gem 'jekyll-t4j'
 ```
 
 And then execute:
@@ -46,24 +54,28 @@ $ bundle
 Or install it yourself as:
 
 ```sh
-$ gem install jekyll-tex-converter
+$ gem install jekyll-t4j
 ```
 
 Lastly, add it to your `_config.yml` file:
 
 ```yaml
 plugins:
-    - jekyll-tex-converter
+    - jekyll-t4j
 ```
 
 ## Multiple Engines
 
-The plugin employs multiple engines to convert your latex content. When converting we will analyse your latex code briefly and choose one of these engines to do the convertion. Currently only two engines are available.
+jekyll-t4j employs multiple engines to convert your latex content. When converting we will analyse your latex code briefly and choose one of these engines to do the convertion. By now 3 engines are available.
 
-### 1. Local Tex Distribution
+### 1. TeX4ht
 
-This is why you have to install TexLive or MikTeX before you use this plugin. We use [tex4ht](https://www.tug.org/tex4ht/) to convert latex to html. tex4ht supports almost all packages.
+TODO
 
-### 2. LaTeX.js
+### 2. dvisvgm
 
-Although tex4ht covers nearly all packages, but it's pretty slow. So when we find your latex code use no packages or packages that are supported by [LaTeX.js](https://latex.js.org/), we will choose this engine to do the job. It's faster than tex4ht.
+TODO
+
+### 3. LaTeX.js
+
+TODO

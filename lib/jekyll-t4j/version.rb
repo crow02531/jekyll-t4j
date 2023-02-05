@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Jekyll
-    module TexConverter
-        VERSION = "0.1.1"
+    module T4J
+        VERSION = "0.2.0"
     end
 end

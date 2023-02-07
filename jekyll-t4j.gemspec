@@ -14,16 +14,10 @@ Gem::Specification.new do |s|
     s.files = [
         "lib/jekyll-t4j.rb",
         "lib/jekyll-t4j/version.rb",
-        "lib/jekyll-t4j/analyzer.rb",
-        "lib/jekyll-t4j/engines/engine.rb",
-        "lib/jekyll-t4j/engines/tex4ht.rb",
+        "lib/jekyll-t4j/merger.rb",
+        "lib/jekyll-t4j/renderer.rb",
+        "lib/jekyll-t4j/engines.rb",
         "lib/jekyll-t4j/engines/dvisvgm.rb",
-        "lib/jekyll-t4j/engines/latex_js.rb",
-        "lib/jekyll/merger.rb",
-        "lib/jekyll/converters/tex.rb",
-        "lib/jekyll/tags/tex_snippet.rb",
-
-        "script/build-file.lua",
 
         "LICENSE",
         "README.md"

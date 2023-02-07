@@ -1,34 +1,26 @@
 # frozen_string_literal: true
 
-module Jekyll
-    module T4J
-        class Dvisvgm < Engine
-            def self.compile(analyzer)
-                Engine.check_tex
+require "tmpdir"
 
-                # setup.
-                pwd = Dir.mktmpdir
-                f = File.open "#{pwd}/content.tex"
-                f.write analyzer.preamble
-                f.write "\\pagenumbering{gobble}" # disable page numbering
-                f.write analyzer.body
-                f.close
+module Jekyll::T4J
+    module Engines
+        def self.dvisvgm(src)
+            check_tex
 
-                # call 'dvilualatex' to get dvi file.
-                system "dvilualatex --draftmode --halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
-                # call 'dvisvgm' to convert dvi to svg.
-                system "dvisvgm --bbox=min content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            # setup.
+            pwd = Dir.mktmpdir
+            File.write "#{pwd}/content.tex", src
 
-                # fetch result.
-                f = Engine.rndname << ".svg"
-                body = "<img src=\"#{f}\">"
-                external = {f => File.read("#{pwd}/content.svg")}
+            # call 'dvilualatex' to get dvi file.
+            system "latex -halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            system "latex -halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            # call 'dvisvgm' to convert dvi to svg.
+            system "dvisvgm content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
-                # return.
-                {body:, external:}
-            ensure
-                FileUtils.remove_entry pwd
-            end
+            # fetch result and return.
+            File.read "#{pwd}/content.svg"
+        ensure
+            FileUtils.remove_entry pwd
         end
     end
 end

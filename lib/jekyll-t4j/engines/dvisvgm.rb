@@ -4,10 +4,14 @@ require "tmpdir"
 
 module Jekyll::T4J
     module Engines
+        @@cache = {}
+
         def self.dvisvgm(src)
-            check_tex
+            ret = @@cache[src]
+            return ret if ret
 
             # setup.
+            check_tex
             pwd = Dir.mktmpdir
             File.write "#{pwd}/content.tex", src
 
@@ -17,10 +21,11 @@ module Jekyll::T4J
             # call 'dvisvgm' to convert dvi to svg.
             system "dvisvgm content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
-            # fetch result and return.
-            File.read "#{pwd}/content.svg"
+            # fetch result.
+            ret = File.read "#{pwd}/content.svg"
+            @@cache[src] = ret
         ensure
-            FileUtils.remove_entry pwd
+            FileUtils.remove_entry pwd if pwd
         end
     end
 end

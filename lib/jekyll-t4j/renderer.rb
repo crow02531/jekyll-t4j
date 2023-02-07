@@ -6,11 +6,11 @@ module Jekyll::T4J
     def self.mask(str, reg)
         s = StringScanner.new str
         parts = []
-    
+
         while not s.eos? do
             p = s.charpos
             m = s.scan_until(reg)
-    
+
             if m then
                 parts << [str[p..(s.charpos - s.matched.size - 1)], true] unless s.charpos == s.matched.size
                 parts << [s.matched, false]
@@ -19,7 +19,7 @@ module Jekyll::T4J
                 break
             end
         end
-    
+
         parts
     end
 end
@@ -37,13 +37,13 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
     for p in parts
         if p[1] then
             p[0].gsub!(/(?<!\\)\$\$[\s\S]+?(?<!\\)\$\$/) {|m| gen.(m, false)}
-            p[0].gsub!(/(?<!\\)\\\[[\s\S]+?(?<!\\)\\\]/) {|m| gen.(m, false)}
-            p[0].gsub!(/(?<!\\)\\begin{displaymath}[\s\S]+?(?<!\\)\\end{displaymath}/) {|m| gen.(m, false)}
-            p[0].gsub!(/(?<!\\)\\begin{equation}[\s\S]+?(?<!\\)\\end{equation}/) {|m| gen.(m, false)}
+            p[0].gsub!(/(?<!\\)\\\[([\s\S]+?)(?<!\\)\\\]/) {gen.("$$#{$1}$$", false)}
+            p[0].gsub!(/(?<!\\)\\begin{displaymath}([\s\S]+?)(?<!\\)\\end{displaymath}/) {gen.("$$#{$1}$$", false)}
+            p[0].gsub!(/(?<!\\)\\begin{equation}([\s\S]+?)(?<!\\)\\end{equation}/) {gen.("$$#{$1}$$", false)}
 
             p[0].gsub!(/(?<!\\)\$[\s\S]+?(?<!\\)\$/) {|m| gen.(m, true)}
-            p[0].gsub!(/(?<!\\)\\\([\s\S]+?(?<!\\)\\\)/) {|m| gen.(m, true)}
-            p[0].gsub!(/(?<!\\)\\begin{math}[\s\S]+?(?<!\\)\\end{math}/) {|m| gen.(m, true)}
+            p[0].gsub!(/(?<!\\)\\\(([\s\S]+?)(?<!\\)\\\)/) {gen.("$#{$1}$", true)}
+            p[0].gsub!(/(?<!\\)\\begin{math}([\s\S]+?)(?<!\\)\\end{math}/) {gen.("$#{$1}$", true)}
         end
 
         result << p[0]

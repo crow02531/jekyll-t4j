@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "jekyll/cache"
 
 module Jekyll::T4J
     module Engines
-        @@cache = {}
+        @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
 
         def self.dvisvgm_raw(src)
             # setup.
@@ -25,9 +26,7 @@ module Jekyll::T4J
         end
 
         def self.dvisvgm(src)
-            ret = @@cache[src]
-            ret = @@cache[src] = dvisvgm_raw(src) unless ret
-            ret
+            @@cache_dvisvgm.getset(src) {dvisvgm_raw(src)}
         end
     end
 end

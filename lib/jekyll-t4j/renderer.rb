@@ -40,22 +40,25 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
     result = String.new
 
     gen = -> (s, m) {
-        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}"
-        s << "\\end{document}"
-        "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, Jekyll::T4J::Engines.dvisvgm(s), "svg")}\" style=\"#{m ? "display: inline;" : "display: block;margin: 0 auto"}\">"
+        env = m ? "math" : "displaymath"
+        sty = m ? "display: inline;" : "display: block; margin: 0 auto;"
+
+        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}\\begin{#{env}}"
+        s << "\\end{#{env}}\\end{document}"
+        "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, Jekyll::T4J::Engines.dvisvgm(s), "svg")}\" style=\"#{sty}\">"
     }
 
     for p in parts
         if p[1] then
             # TODO: escape
-            p[0].gsub!(/\$\$[\s\S]+?\$\$/) {|m| gen.(m, false)}
-            p[0].gsub!(/\\\[([\s\S]+?)\\\]/) {gen.("$$#{$1}$$", false)}
-            p[0].gsub!(/\\begin{displaymath}([\s\S]+?)\\end{displaymath}/) {gen.("$$#{$1}$$", false)}
-            p[0].gsub!(/\\begin{equation}([\s\S]+?)\\end{equation}/) {gen.("$$#{$1}$$", false)}
+            p[0].gsub!(/\$\$([\s\S]+?)\$\$/) {gen.($1, false)}
+            p[0].gsub!(/\\\[([\s\S]+?)\\\]/) {gen.($1, false)}
+            p[0].gsub!(/\\begin{displaymath}([\s\S]+?)\\end{displaymath}/) {gen.($1, false)}
+            p[0].gsub!(/\\begin{equation}([\s\S]+?)\\end{equation}/) {gen.($1, false)}
 
-            p[0].gsub!(/\$[\s\S]+?\$/) {|m| gen.(m, true)}
-            p[0].gsub!(/\\\(([\s\S]+?)\\\)/) {gen.("$#{$1}$", true)}
-            p[0].gsub!(/\\begin{math}([\s\S]+?)\\end{math}/) {gen.("$#{$1}$", true)}
+            p[0].gsub!(/\$([\s\S]+?)\$/) {gen.($1, true)}
+            p[0].gsub!(/\\\(([\s\S]+?)\\\)/) {gen.($1, true)}
+            p[0].gsub!(/\\begin{math}([\s\S]+?)\\end{math}/) {gen.($1, true)}
         end
 
         result << p[0]

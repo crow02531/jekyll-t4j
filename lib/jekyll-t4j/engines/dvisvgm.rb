@@ -6,10 +6,7 @@ module Jekyll::T4J
     module Engines
         @@cache = {}
 
-        def self.dvisvgm(src)
-            ret = @@cache[src]
-            return ret if ret
-
+        def self.dvisvgm_raw(src)
             # setup.
             check_tex
             pwd = Dir.mktmpdir
@@ -22,10 +19,15 @@ module Jekyll::T4J
             system "dvisvgm content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
             # fetch result.
-            ret = File.read "#{pwd}/content.svg"
-            @@cache[src] = ret
+            File.read "#{pwd}/content.svg"
         ensure
             FileUtils.remove_entry pwd if pwd
+        end
+
+        def self.dvisvgm(src)
+            ret = @@cache[src]
+            ret = @@cache[src] = dvisvgm_raw(src) unless ret
+            ret
         end
     end
 end

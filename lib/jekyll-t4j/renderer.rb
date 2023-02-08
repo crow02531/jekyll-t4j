@@ -40,8 +40,7 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
     result = String.new
 
     gen = -> (s, m) {
-        # TODO: packages
-        s.prepend "\\documentclass{article}\\begin{document}\\pagenumbering{gobble}"
+        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}"
         s << "\\end{document}"
         "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, Jekyll::T4J::Engines.dvisvgm(s), "svg")}\" style=\"#{m ? "display: inline;" : "display: block;margin: 0 auto"}\">"
     }

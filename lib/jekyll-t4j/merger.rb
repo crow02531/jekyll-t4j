@@ -3,7 +3,6 @@
 module Jekyll::T4J
     module Merger
         @@available = true
-        @@dest = nil
         @@cache = {}
         @@rnd_range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@".chars
     
@@ -21,13 +20,10 @@ module Jekyll::T4J
             filename.freeze
         end
 
-        # get destination folder
-        Jekyll::Hooks.register :site, :after_init do |site|
-            @@dest = site.dest
-        end
-
         # write external files
         Jekyll::Hooks.register :documents, :post_write do |doc|
+            @@available = false
+
             url = doc.url
             request = @@cache[url]
 
@@ -35,7 +31,7 @@ module Jekyll::T4J
                 url = File.dirname url unless url.end_with? "/"
 
                 request.each {|k, v|
-                    File.write File.join(@@dest, url, k), v
+                    File.write File.join(doc.site.dest, url, k), v
                 }
 
                 request.clear

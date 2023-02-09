@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
         "README.md"
     ]
 
-    s.add_runtime_dependency "jekyll", "~> 4.2"
+    s.add_runtime_dependency "jekyll", ">= 4.1", "< 5"
     s.requirements << "TeX distribution"
 end

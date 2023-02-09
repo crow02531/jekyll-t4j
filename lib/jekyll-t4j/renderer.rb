@@ -64,7 +64,7 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
             for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK, true)
                 p1[2].each_index {|i|
                     c = p1[2][i]
-                    p1[0] = gen.(c, i < 2) if not c.empty?
+                    p1[0] = gen.(CGI::unescapeHTML(c), i < 2) if not c.empty?
                 } if not p1[1]
 
                 result << p1[0]

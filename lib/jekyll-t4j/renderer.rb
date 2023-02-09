@@ -29,7 +29,7 @@ module Jekyll::T4J
             if m then
                 p1 = s.charpos - s.matched.size - 1
 
-                parts << [str[p0..p1], true] unless p1 <= p0
+                parts << [str[p0..p1], true] unless p1 < p0
                 parts << [s.matched, false]
             else
                 parts << [str[p0..-1], true]
@@ -52,8 +52,8 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
         s = Jekyll::T4J::Engines.dvisvgm(s)
 
         "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, s, "svg")}\" style=\"#{
-            is_inline ? "display:inline;height:1.1em;" : "display:block;margin:0 auto;height:calc(0.1em * #{s[/height='(\S+?)pt'/, 1]});"
-        }\">"
+            is_inline ? "display:inline;vertical-align:middle" : "display:block;margin:0 auto"
+        };height:#{(s[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s}em\">"
     }
 
     for p0 in Jekyll::T4J.mask(doc.output, Jekyll::T4J::HTML_TEXT_MASK)

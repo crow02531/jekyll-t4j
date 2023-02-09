@@ -16,7 +16,7 @@ module Jekyll::T4J
             unless has_tex?
                 STDERR.puts "You are missing a TeX distribution. Please install:"
                 STDERR.puts "  MiKTeX or TeX Live"
-                raise Errors::FatalException.new("Missing TeX distribution")
+                raise "Missing TeX distribution"
             end
         end
     end

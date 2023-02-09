@@ -8,18 +8,18 @@ module Jekyll::T4J
         @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
 
         def self.dvisvgm_raw(src)
-            # setup.
+            # setup: write 'src' to 'content.tex'
             check_tex
             pwd = Dir.mktmpdir
             File.write "#{pwd}/content.tex", src
 
-            # call 'dvilualatex' to get dvi file.
-            system "latex -halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
-            system "latex -halt-on-error content.tex", :chdir => pwd, [:out, :err] => File::NULL, exception: true
-            # call 'dvisvgm' to convert dvi to svg.
-            system "dvisvgm content.dvi", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            # call 'latex' to compile: tex->dvi
+            system "latex -halt-on-error content", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            system "latex -halt-on-error content", :chdir => pwd, [:out, :err] => File::NULL, exception: true
+            # call 'dvisvgm' to convert dvi to svg
+            system "dvisvgm -n -e content", :chdir => pwd, [:out, :err] => File::NULL, exception: true
 
-            # fetch result.
+            # fetch result
             File.read "#{pwd}/content.svg"
         ensure
             FileUtils.remove_entry pwd if pwd

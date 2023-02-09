@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "strscan"
+require "cgi"
 
 module Jekyll::T4J
     HTML_TEXT_MASK = Regexp.union(
@@ -10,6 +11,11 @@ module Jekyll::T4J
         %r{\s*<svg[\s\S]*?</svg>\s*},
         /\s*<!--.*?-->\s*/,
         /\s*<.*?>\s*/
+    ).freeze
+
+    TEXT_TEX_MASK = Regexp.union(
+        /\\\([\s\S]*?\\\)/,
+        /\\\[[\s\S]*?\\\]/
     ).freeze
 
     def self.mask(str, reg)
@@ -36,32 +42,30 @@ module Jekyll::T4J
 end
 
 Jekyll::Hooks.register :documents, :post_render do |doc|
-    parts = Jekyll::T4J.mask(doc.output, Jekyll::T4J::HTML_TEXT_MASK)
     result = String.new
 
-    gen = -> (s, m) {
-        env = m ? "math" : "displaymath"
-        sty = m ? "display: inline;" : "display: block; margin: 0 auto;"
+    gen = -> (s) {
+        is_inline = s.start_with?("\\(")
 
-        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}\\begin{#{env}}"
-        s << "\\end{#{env}}\\end{document}"
-        "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, Jekyll::T4J::Engines.dvisvgm(s), "svg")}\" style=\"#{sty}\">"
+        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}"
+        s << "\\end{document}"
+        s = Jekyll::T4J::Engines.dvisvgm(s)
+
+        "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, s, "svg")}\" style=\"#{
+            is_inline ? "display:inline;height:1.1em;" : "display:block;margin:0 auto;height:calc(0.1em * #{s[/height='(\S+?)pt'/, 1]});"
+        }\">"
     }
 
-    for p in parts
-        if p[1] then
-            # TODO: escape
-            p[0].gsub!(/\$\$([\s\S]+?)\$\$/) {gen.($1, false)}
-            p[0].gsub!(/\\\[([\s\S]+?)\\\]/) {gen.($1, false)}
-            p[0].gsub!(/\\begin{displaymath}([\s\S]+?)\\end{displaymath}/) {gen.($1, false)}
-            p[0].gsub!(/\\begin{equation}([\s\S]+?)\\end{equation}/) {gen.($1, false)}
+    for p0 in Jekyll::T4J.mask(doc.output, Jekyll::T4J::HTML_TEXT_MASK)
+        if p0[1] then
+            for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK)
+                p1[0] = gen.(CGI::unescapeHTML p1[0]) if not p1[1]
 
-            p[0].gsub!(/\$([\s\S]+?)\$/) {gen.($1, true)}
-            p[0].gsub!(/\\\(([\s\S]+?)\\\)/) {gen.($1, true)}
-            p[0].gsub!(/\\begin{math}([\s\S]+?)\\end{math}/) {gen.($1, true)}
+                result << p1[0]
+            end
+        else
+            result << p0[0]
         end
-
-        result << p[0]
     end
 
     doc.output = result

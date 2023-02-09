@@ -5,7 +5,7 @@ require_relative "lib/jekyll-t4j/version"
 Gem::Specification.new do |s|
     s.name        = "jekyll-t4j"
     s.version     = Jekyll::T4J::VERSION
-    s.summary     = "TeX/LaTeX support for Jekyll."
+    s.summary     = "LaTeX support for Jekyll."
     s.authors     = "crow02531"
     s.email       = "crow02531@outlook.com"
     s.homepage    = "https://github.com/crow02531/jekyll-t4j"
@@ -22,4 +22,7 @@ Gem::Specification.new do |s|
         "LICENSE",
         "README.md"
     ]
+
+    s.add_runtime_dependency "jekyll", "~> 4.2"
+    s.requirements << "TeX distribution"
 end

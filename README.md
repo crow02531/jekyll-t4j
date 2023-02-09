@@ -6,7 +6,7 @@ Feel free to write any LaTeX! &#x1F389;
 
 ## Usage
 
-For instance, write a post `2023-02-04-hello-latex.md` and fill it with:
+We start by a simple instance, write a post `2023-02-04-hello-latex.md` and fill it with:
 
 ```
 ---
@@ -31,6 +31,18 @@ t4j:
 ```
 
 Finally, build your site, complete!
+
+### Configuire
+
+As shown above, you can configuire jekyll-t4j via `_config.yml`. Here is the template:
+
+```yaml
+t4j:
+  packages:
+    - pkgA
+    - pkgB[xxx] # 'xxx' is the option passed to 'pkgB'
+    - pkgC
+```
 
 ## Installation
 

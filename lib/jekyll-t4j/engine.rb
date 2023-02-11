@@ -13,7 +13,10 @@ require "jekyll-t4j/engines/katex"
 
 module Jekyll::T4J
     class Engine
-        @@cache = Jekyll::Cache.new "Jekyll::T4J::Engine"
+        @@cache_katex = Jekyll::Cache.new "Jekyll::T4J::Katex"
+        @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
+
+        @@correction = File.read File.join(__dir__, "engines", "correction.tex")
 
         def initialize(merge_callback)
             @merger = merge_callback
@@ -31,30 +34,33 @@ module Jekyll::T4J
         def render(snippet, displayMode)
             return "" if (snippet = snippet.strip).empty?
 
-            cache_key = displayMode ? "$$" : "$"
-            cache_key = "#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}" << cache_key << snippet << cache_key
-
-            cached = @@cache.getset(cache_key) {
-                # try katex first
-                result = Engine.katex_raw(snippet, {displayMode:, strict: true})
-
-                # otherwise we turn to dvisvgm
-                if not result then
-                    result = Engine.dvisvgm_raw(
-                    <<~HEREDOC
-                        \\documentclass{article}
-                        \\let\\OldLaTeX\\LaTeX
-                        \\renewcommand{\\LaTeX}{\\text{\\OldLaTeX}}
-                        \\usepackage{amsmath}\\usepackage{amssymb}#{cache_key}\\end{document}
-                    HEREDOC
-                    )
-                end
-
-                # return
-                result.freeze
+            # try katex first
+            cached = @@cache_katex.getset(displayMode.to_s + snippet) {
+                Engine.katex_raw(snippet, {displayMode:, strict: true}) or "nil"
             }
+            proc_by_katex = cached != "nil"
 
-            if cached.start_with?("<?xml") then
+            # otherwise we turn to dvisvgm
+            cached = @@cache_dvisvgm.getset(Jekyll::T4J.cfg_pkgs + snippet) {
+                Engine.dvisvgm_raw(
+                <<~HEREDOC
+                    \\documentclass{article}
+                    #{Jekyll::T4J.cfg_pkgs}
+                    #{@@correction}
+                    \\begin{document}
+                    \\pagenumbering{gobble}
+                    #{snippet}
+                    \\end{document}
+                HEREDOC
+                )
+            } if not proc_by_katex
+
+            # return the result
+            if proc_by_katex then
+                @has_katex = true
+
+                cached
+            else
                 @has_katex_ext = true
 
                 "<img src=\"#{@merger.(cached, "svg")}\" class=\"#{
@@ -62,10 +68,6 @@ module Jekyll::T4J
                 }\" style=\"height:#{
                     (cached[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s[/\d+\.\d{1,4}/]
                 }em\">"
-            else
-                @has_katex = true
-
-                cached
             end
         end
     end

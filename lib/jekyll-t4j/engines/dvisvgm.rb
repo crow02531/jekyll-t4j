@@ -1,15 +1,11 @@
 # frozen_string_literal: true
 
 require "tmpdir"
-require "jekyll/cache"
 
 module Jekyll::T4J
-    module Engines
-        @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
-
+    class Engine
         def self.dvisvgm_raw(src)
             # setup: write 'src' to 'content.tex'
-            check_tex
             pwd = Dir.mktmpdir
             File.write "#{pwd}/content.tex", src
 
@@ -23,10 +19,6 @@ module Jekyll::T4J
             File.read "#{pwd}/content.svg"
         ensure
             FileUtils.remove_entry pwd if pwd
-        end
-
-        def self.dvisvgm(src)
-            @@cache_dvisvgm.getset(src) {dvisvgm_raw(src)}
         end
     end
 end

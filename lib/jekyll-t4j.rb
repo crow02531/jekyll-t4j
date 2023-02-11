@@ -30,5 +30,5 @@ module Jekyll::T4J
 end
 
 require "jekyll-t4j/merger"
-require "jekyll-t4j/engines"
+require "jekyll-t4j/engine"
 require "jekyll-t4j/renderer"

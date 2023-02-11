@@ -44,28 +44,21 @@ module Jekyll::T4J
 end
 
 Jekyll::Hooks.register :documents, :post_render do |doc|
+    engine = Jekyll::T4J::Engine.new(->(f, e) {Jekyll::T4J::Merger.ask_for_merge(doc.url, f, e)})
     result = String.new
-
-    gen = -> (s, is_display) {
-        s.strip!
-        return "" if s.empty?
-
-        s.prepend "\\documentclass{article}#{Jekyll::T4J.cfg_pkgs}\\begin{document}\\pagenumbering{gobble}\\begin{math}"
-        s << "\\end{math}\\end{document}"
-        s = Jekyll::T4J::Engines.dvisvgm(s)
-
-        "<img src=\"#{Jekyll::T4J::Merger.ask_for_merge(doc.url, s, "svg")}\" style=\"#{
-            is_display ? "display:block;margin:0 auto" : "display:inline;vertical-align:middle"
-        };height:#{(s[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s}em\">"
-    }
 
     for p0 in Jekyll::T4J.mask(doc.output, Jekyll::T4J::HTML_TEXT_MASK)
         if p0[1] then
             for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK, true)
-                p1[2].each_index {|i|
-                    c = p1[2][i]
-                    p1[0] = gen.(CGI::unescapeHTML(c), i < 2) if not c.empty?
-                } if not p1[1]
+                if not p1[1] then
+                    for i in 0..3
+                        c = p1[2][i]
+                        if not c.empty? then
+                            p1[0] = engine.render(CGI::unescapeHTML(c), i < 2)
+                            break
+                        end
+                    end
+                end
 
                 result << p1[0]
             end
@@ -74,5 +67,5 @@ Jekyll::Hooks.register :documents, :post_render do |doc|
         end
     end
 
-    doc.output = result
+    doc.output = result.insert(result.index("</head>"), engine.header)
 end

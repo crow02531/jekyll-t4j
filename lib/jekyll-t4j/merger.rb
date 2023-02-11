@@ -5,7 +5,7 @@ module Jekyll::T4J
         @@available = true
         @@cache = {}
         @@rnd_range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@".chars
-    
+
         def self.ask_for_merge(url, filedata, extname)
             raise "Merge request during post processing!" unless @@available
 

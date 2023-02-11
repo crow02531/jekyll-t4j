@@ -5,24 +5,31 @@ require_relative "lib/jekyll-t4j/version"
 Gem::Specification.new do |s|
     s.name        = "jekyll-t4j"
     s.version     = Jekyll::T4J::VERSION
-    s.summary     = "LaTeX support for Jekyll."
     s.authors     = "crow02531"
     s.email       = "crow02531@outlook.com"
     s.homepage    = "https://github.com/crow02531/jekyll-t4j"
     s.license     = "MIT"
+    s.summary     = "LaTeX support for Jekyll."
+    s.description = <<-EOF
+        A Jekyll plugin providing full support of LaTeX. Capable of
+        rendering almost all packages, including tikz and chemfig.
+    EOF
 
     s.files = [
         "lib/jekyll-t4j.rb",
         "lib/jekyll-t4j/version.rb",
         "lib/jekyll-t4j/merger.rb",
         "lib/jekyll-t4j/renderer.rb",
-        "lib/jekyll-t4j/engines.rb",
+        "lib/jekyll-t4j/engine.rb",
         "lib/jekyll-t4j/engines/dvisvgm.rb",
+        "lib/jekyll-t4j/engines/katex.rb",
+        "lib/jekyll-t4j/engines/katex.js",
 
         "LICENSE",
         "README.md"
     ]
 
-    s.add_runtime_dependency "jekyll", ">= 4.1", "< 5"
-    s.requirements << "TeX distribution"
+    s.add_runtime_dependency "jekyll", "~> 4.1"
+    s.add_runtime_dependency "execjs", "~> 2.8"
+    s.requirements << "A TeX distribution"
 end

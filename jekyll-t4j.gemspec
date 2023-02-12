@@ -21,10 +21,11 @@ Gem::Specification.new do |s|
         "lib/jekyll-t4j/merger.rb",
         "lib/jekyll-t4j/renderer.rb",
         "lib/jekyll-t4j/engine.rb",
-        "lib/jekyll-t4j/engines/dvisvgm.rb",
-        "lib/jekyll-t4j/engines/katex.rb",
-        "lib/jekyll-t4j/engines/katex.js",
-        "lib/jekyll-t4j/engines/correction.tex",
+        "lib/jekyll-t4j/engine/dvisvgm.rb",
+        "lib/jekyll-t4j/engine/dvisvgm.tex",
+        "lib/jekyll-t4j/engine/katex.rb",
+        "lib/jekyll-t4j/engine/katex.js",
+
         "LICENSE",
         "README.md"
     ]

@@ -12,52 +12,89 @@ require "jekyll-t4j/engine/dvisvgm"
 require "jekyll-t4j/engine/katex"
 
 module Jekyll::T4J
-    class Engine
+    module Engine
         @@cache_katex = Jekyll::Cache.new "Jekyll::T4J::Katex"
         @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
 
-        def initialize(merge_callback)
-            @merger = merge_callback
+        @@header = <<~HEREDOC
+            <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_CSS_VERSION}/dist/katex.min.css\">
+            <style>
+                .katex-ext-d {
+                    border-radius: 0px;
+                    display: block;
+                    margin: 5px auto;
+                }
+                .katex-ext-i {
+                    border-radius: 0px;
+                    display: inline;
+                    vertical-align: middle;
+                }
+            </style>
+        HEREDOC
+
+        def self.header
+            @@header
         end
 
-        def header
-            result = String.new
-
-            result << "<link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_CSS_VERSION}/dist/katex.min.css\">" if @has_katex
-            result << "<style>.katex-ext-d{border-radius:0px;display:block;margin:0 auto;}.katex-ext-i{border-radius:0px;display:inline;vertical-align:middle;}</style>" if @has_katex_ext
-
-            result
-        end
-
-        def render(snippet)
-            # try katex first
-            cached = @@cache_katex.getset(snippet) {
-                begin
-                    Engine.katex(snippet, {strict: true})
-                rescue
-                    "NIL"
-                end
-            }
-            proc_by_katex = cached != "NIL"
-
-            # otherwise we turn to dvisvgm
-            cached = @@cache_dvisvgm.getset(Jekyll::T4J.cfg_pkgs + snippet) {
-                Engine.dvisvgm(snippet)
-            } if not proc_by_katex
-
-            # return the result
-            if proc_by_katex then
-                @has_katex = true
-
-                cached
-            else
-                @has_katex_ext = true
-
-                "<img src=\"#{@merger.(cached, "svg")}\" class=\"#{
-                    Engine.is_display_mode?(snippet) ? "katex-ext-d" : "katex-ext-i"
+        def self.render(snippets, merger)
+            gen = ->(svg_data, displayMode) {
+                "<img src=\"#{merger.(svg_data, ".svg")}\" class=\"#{
+                    displayMode ? "katex-ext-d" : "katex-ext-i"
                 }\" style=\"height:#{
-                    (cached[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s[/\d+\.\d{1,4}/]
+                    (svg_data[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s[/\d+\.\d{1,4}/]
                 }em\">"
+            }
+
+            # normalize 'snippets'
+            snippets.map! {|s|
+                if not s.start_with?("\\") then
+                    s = split_snippet(s)
+                    s = s[1] ? "\\[#{s[0]}\\]" : "\\(#{s[0]}\\)"
+                end
+
+                s
+            }
+
+            # fill 'snippets' with katex and cached dvisvgm
+            unset = []
+            uncached = {}
+            snippets.each_index {|i|
+                s = snippets[i]
+                r = @@cache_katex.getset(s) {
+                    begin
+                        katex_raw(s, {strict: true})
+                    rescue
+                        "NIL"
+                    end
+                }
+
+                if r == "NIL" then
+                    begin
+                        r = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s], is_display_mode?(s))
+                    rescue
+                        uncached[s] = r = nil
+                        unset << [i, s]
+                    end
+                end
+
+                snippets[i] = r
+            }
+
+            # render 'uncached'
+            if not uncached.empty? then
+                # bulk render 'uncached'
+                begin
+                    uncached_snippets = uncached.keys
+                    rendered = dvisvgm_raw_bulk(uncached_snippets)
+                    rendered.each_index {|i| uncached[uncached_snippets[i]] = rendered[i]}
+                end
+
+                # flush 'uncached' to 'snippets' and cache them
+                unset.each {|b|
+                    s = b[1]
+                    snippets[b[0]] = gen.(uncached[s], is_display_mode?(s))
+                    @@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s] = uncached[s]
+                }
             end
         end
 

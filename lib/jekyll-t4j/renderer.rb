@@ -46,9 +46,9 @@ module Jekyll::T4J
         result = []
         prev = nil
 
-        for p0 in Jekyll::T4J.mask(html, Jekyll::T4J::HTML_TEXT_MASK)
+        for p0 in mask(html, HTML_TEXT_MASK)
             if p0[1] then #p0[0] is a text node
-                for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK)
+                for p1 in mask(p0[0], TEXT_TEX_MASK)
                     if not p1[1] then #p1[0] is a tex snippet
                         prev = nil
                         p1[1] = true
@@ -75,19 +75,41 @@ module Jekyll::T4J
 
         result
     end
-end
 
-Jekyll::Hooks.register :documents, :post_render do |doc|
-    engine = Jekyll::T4J::Engine.new(->(f, e) {Jekyll::T4J::Merger.ask_for_merge(doc.url, f, e)})
-    result = String.new
+    # T4J rendering phase
+    Jekyll::Hooks.register :site, :post_render do |site|
+        snippets = []
+        docs = []
 
-    for p in Jekyll::T4J.extract(doc.output)
-        if p[1] then #p[0] is a tex snippet
-            result << engine.render(CGI::unescapeHTML(p[0])) #TODO: a very subtle bug
-        else
-            result << p[0]
+        # collect tex snippets
+        site.each_site_file {|f|
+            if !f.is_a?(Jekyll::StaticFile) then
+                parts = extract(f.output)
+                if parts.size > 1 then #'f' has tex snippet(s)
+                    parts.each {|part| snippets << CGI::unescapeHTML(part[0]) if part[1]} # TODO: a subtle bug about unescaping HTML
+                    docs << [f, parts]
+                end
+            end
+        }
+
+        # render 'snippets'
+        Jekyll::T4J::Engine.render(snippets, ->(data, extname) {Jekyll::T4J::Merger.ask_for_merge(data, extname)})
+
+        # 'snippets' -> 'docs'
+        i = 0
+        for doc in docs
+            newoutput = String.new
+
+            for part in doc[1]
+                if part[1] then
+                    part[0] = snippets[i]
+                    i += 1
+                end
+
+                newoutput << part[0]
+            end
+
+            doc[0].output = newoutput.insert(newoutput.index("</head>"), Jekyll::T4J::Engine.header)
         end
     end
-
-    doc.output = result.insert(result.index("</head>"), engine.header)
 end

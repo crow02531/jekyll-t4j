@@ -5,33 +5,24 @@ module Jekyll::T4J
         @@table = {}
         @@rnd_range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@".chars
 
-        def self.trim_to_dir(str)
-            str.end_with?("/") ? str : (File.dirname(str) + "/")
-        end
+        def self.ask_for_merge(filedata, extname)
+            request = @@table[filedata]
+            
+            if request then
+                request[1] << extname
+            else
+                basename = @@rnd_range.sample(22).join.prepend("_").freeze
+                request = @@table[filedata] = [basename, [extname]]
+            end
 
-        def self.ask_for_merge(url, filedata, extname)
-            url = trim_to_dir(url)
-            request = @@table[url]
-            request = @@table[url] = {} unless request
-
-            entry = request.rassoc(filedata.freeze)
-            return entry[0] if entry and entry[0].split(".")[1] == extname
-
-            filename = @@rnd_range.sample(22).join.prepend("_") << "." << extname
-            request[filename] = filedata
-            filename.freeze
+            "/" + request[0] + extname
         end
 
         # write external files and clean up
-        Jekyll::Hooks.register :site, :post_write do |site|
-            site.each_site_file {|f|
-                url = trim_to_dir(f.is_a?(Jekyll::StaticFile) ? f.relative_path : f.url)
-                request = @@table[url]
-
-                if request then
-                    request.each {|k, v| File.write(File.join(site.dest, url, k), v)}
-                    request.clear
-                end
+        Jekyll::Hooks.register :site, :post_write, priority: Jekyll::Hooks::PRIORITY_MAP[:low] do |site|
+            @@table.each {|filedata, request|
+                basename = request[0]
+                request[1].each {|extname| File.write(File.join(site.dest, basename + extname), filedata)}
             }
 
             @@table.clear

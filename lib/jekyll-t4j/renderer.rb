@@ -14,13 +14,13 @@ module Jekyll::T4J
     ).freeze
 
     TEXT_TEX_MASK = Regexp.union(
-        /\\\[([\s\S]*?)\\\]/,
-        /\$\$([\s\S]*?)\$\$/,
-        /\\\(([\s\S]*?)\\\)/,
-        /\$([\s\S]*?)\$/
+        /\\\[[\s\S]*?\\\]/,
+        /\$\$[\s\S]*?\$\$/,
+        /\\\([\s\S]*?\\\)/,
+        /\$[\s\S]*?\$/
     ).freeze
 
-    def self.mask(str, reg, capture = false)
+    def self.mask(str, reg)
         s = StringScanner.new str
         parts = []
 
@@ -32,7 +32,7 @@ module Jekyll::T4J
                 p1 = s.charpos - s.matched.size - 1
 
                 parts << [str[p0..p1], true] unless p1 < p0
-                parts << (capture ? [s.matched, false, s.captures] : [s.matched, false])
+                parts << [s.matched, false]
             else
                 parts << [str[p0..-1], true]
                 break
@@ -41,29 +41,51 @@ module Jekyll::T4J
 
         parts
     end
+
+    def self.extract(html)
+        result = []
+        prev = nil
+
+        for p0 in Jekyll::T4J.mask(html, Jekyll::T4J::HTML_TEXT_MASK)
+            if p0[1] then #p0[0] is a text node
+                for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK)
+                    if not p1[1] then #p1[0] is a tex snippet
+                        prev = nil
+                        p1[1] = true
+                        result << p1
+                    else
+                        if prev then
+                            prev << p1[0]
+                        else
+                            prev = p1[0]
+                            p1[1] = false
+                            result << p1
+                        end
+                    end
+                end
+            else
+                if prev then
+                    prev << p0[0]
+                else
+                    prev = p0[0]
+                    result << p0
+                end
+            end
+        end
+
+        result
+    end
 end
 
 Jekyll::Hooks.register :documents, :post_render do |doc|
     engine = Jekyll::T4J::Engine.new(->(f, e) {Jekyll::T4J::Merger.ask_for_merge(doc.url, f, e)})
     result = String.new
 
-    for p0 in Jekyll::T4J.mask(doc.output, Jekyll::T4J::HTML_TEXT_MASK)
-        if p0[1] then
-            for p1 in Jekyll::T4J.mask(p0[0], Jekyll::T4J::TEXT_TEX_MASK, true)
-                if not p1[1] then
-                    for i in 0..3
-                        c = p1[2][i]
-                        if not c.empty? then
-                            p1[0] = engine.render(CGI::unescapeHTML(c), i < 2)
-                            break
-                        end
-                    end
-                end
-
-                result << p1[0]
-            end
+    for p in Jekyll::T4J.extract(doc.output)
+        if p[1] then #p[0] is a tex snippet
+            result << engine.render(CGI::unescapeHTML(p[0])) #TODO: a very subtle bug
         else
-            result << p0[0]
+            result << p[0]
         end
     end
 

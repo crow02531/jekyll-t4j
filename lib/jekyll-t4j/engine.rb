@@ -29,14 +29,11 @@ module Jekyll::T4J
             result
         end
 
-        def render(snippet, displayMode)
-            return "" if snippet.empty? or snippet.match?(/^\s*$/)
-            key = displayMode.to_s + snippet
-
+        def render(snippet)
             # try katex first
-            cached = @@cache_katex.getset(key) {
+            cached = @@cache_katex.getset(snippet) {
                 begin
-                    Engine.katex_raw(snippet, {displayMode:, strict: true})
+                    Engine.katex(snippet, {strict: true})
                 rescue
                     "NIL"
                 end
@@ -44,8 +41,8 @@ module Jekyll::T4J
             proc_by_katex = cached != "NIL"
 
             # otherwise we turn to dvisvgm
-            cached = @@cache_dvisvgm.getset(Jekyll::T4J.cfg_pkgs + key) {
-                Engine.dvisvgm_raw(snippet, displayMode, Jekyll::T4J.cfg_pkgs)
+            cached = @@cache_dvisvgm.getset(Jekyll::T4J.cfg_pkgs + snippet) {
+                Engine.dvisvgm(snippet)
             } if not proc_by_katex
 
             # return the result
@@ -57,11 +54,28 @@ module Jekyll::T4J
                 @has_katex_ext = true
 
                 "<img src=\"#{@merger.(cached, "svg")}\" class=\"#{
-                    displayMode ? "katex-ext-d" : "katex-ext-i"
+                    Engine.is_display_mode?(snippet) ? "katex-ext-d" : "katex-ext-i"
                 }\" style=\"height:#{
                     (cached[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s[/\d+\.\d{1,4}/]
                 }em\">"
             end
+        end
+
+        def self.is_display_mode?(snippet)
+            snippet.start_with?("\\[") or snippet.start_with?("$$")
+        end
+
+        def self.split_snippet(snippet)
+            displayMode = false
+            range = 2..-3
+
+            if snippet.start_with?("\\[") or snippet.start_with?("$$") then
+                displayMode = true
+            elsif snippet.start_with?("$") then
+                range = 1..-2
+            end
+
+            [snippet[range], displayMode]
         end
     end
 end

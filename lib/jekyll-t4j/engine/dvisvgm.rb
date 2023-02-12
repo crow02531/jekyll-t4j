@@ -5,20 +5,18 @@ require "open3"
 
 module Jekyll::T4J
     class Engine
-        @@_dvisvgm_tex_ = File.read(File.join(__dir__, "dvisvgm.tex"))
+        @@_dvisvgm_tex_ = File.join(__dir__, "dvisvgm.tex")
 
-        def self.dvisvgm_raw(src, displayMode, pkgs)
+        def self.dvisvgm(snippet)
             # setup: write 'src' to 'content.tex'
             pwd = Dir.mktmpdir
             File.write "#{pwd}/content.tex", <<~HEREDOC
                 \\documentclass{article}
-                #{pkgs}
-                #{@@_dvisvgm_tex_}
+                #{Jekyll::T4J.cfg_pkgs}
+                \\input{#{@@_dvisvgm_tex_}}
                 \\begin{document}
                 \\pagenumbering{gobble}
-                #{displayMode = displayMode ? "$$" : "$"}
-                #{src}
-                #{displayMode}
+                #{snippet}
                 \\end{document}
             HEREDOC
 

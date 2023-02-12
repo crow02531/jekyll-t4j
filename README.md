@@ -1,12 +1,18 @@
 # Jekyll::T4J
 
-jekyll-t4j is a plugin integrating Jekyll with your local TeX distribution. It enables Jekyll to cope with LaTeX code in your site. If you find MathJax or KaTeX can not cover your needs to write complex articles(i.e. LaTeX using chemfig), this plugin may help you a lot.
+jekyll-t4j is a Jekyll plugin providing (nearly) full support of LaTeX.
+
+- **Comprehensive**: support almost all packages, including tikz, chemfig, etc.
+- **Fast**: employ KaTeX to boost speed. Use cache, parallel rendering.
+- **Server side rendering**: all stuffs are done in server.
+
+T4J integrates Jekyll with your local TeX distribution, so you need to have either [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/) installed.
 
 Feel free to write any LaTeX! &#x1F389;
 
-## Usage
+## Getting Started
 
-We start by a simple instance, write a post `2023-02-04-hello-latex.md` and fill it with:
+Let's start by a simple instance, write a post `2023-02-04-hello-latex.md` and fill it with:
 
 ```
 ---
@@ -15,14 +21,16 @@ title:  Hello LaTeX
 date:   2023-02-04 14:53:32 +0800
 ---
 
-This is an inline math $$r=\sqrt{x^2+y^2}$$.
+This is an inline math $r=\sqrt{x^2+y^2}$.
 
 $$\chemfig{*6((--[::-60]HO)-=(-O-[:30])-(-OH)=-=)}$$
 
 And this is vanillyl alcohol.
 ```
 
-Then, open your `_config.yml` file and write:
+As you can see, its usage is the same as KaTeX or MathJax, but we only allow delimiters `$...$`, `$$...$$`, `\(...\)`, `\[...\]`.
+
+Because we use the chemfig package, so open your `_config.yml` file and write:
 
 ```yaml
 t4j:
@@ -32,23 +40,13 @@ t4j:
 
 Finally, build your site, complete!
 
-### Configuire
-
-As shown above, you can configuire jekyll-t4j via `_config.yml`. Here is the template:
-
-```yaml
-t4j:
-  packages:
-    - pkgA
-    - pkgB[xxx] # 'xxx' is the option passed to 'pkgB'
-    - pkgC
-```
+You can learn more about T4J [here](https://github.com/crow02531/jekyll-t4j/wiki).
 
 ## Installation
 
 First of all, you need to have a TeX distribution. Just download and install [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/).
 
-Then, install jekyll-t4j just as other Jekyll plugins. Add this line to your application's Gemfile:
+Then, install jekyll-t4j like other Jekyll plugins. Add this line to your application's Gemfile:
 
 ```ruby
 gem 'jekyll-t4j'

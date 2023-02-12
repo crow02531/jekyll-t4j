@@ -14,18 +14,19 @@ module Jekyll::T4J
     # initialize plugin
     Jekyll::Hooks.register :site, :after_init do |site|
         cfg = site.config["t4j"]
-        @@cfg_pkgs = (cfg and (cfg = cfg["packages"])) ? parse_cfg_pkgs(cfg) : ""
-    end
 
-    def self.parse_cfg_pkgs(cfg)
-        ret = String.new
+        if cfg and (cfg = cfg["packages"]) then
+            pkgs = String.new
 
-        for p in cfg
-            raise "Illegal config: #{p}" unless p.match(/\s*([\w-]+)(\[[^\[\]]*\])?\s*/)
-            ret << "\\usepackage#{$2}{#{$1}}"
+            for p in cfg
+                raise "Illegal config: #{p}" unless p.match(/\s*([\w-]+)(\[[^\[\]]*\])?\s*/)
+                pkgs << "\\usepackage#{$2}{#{$1}}"
+            end
+
+            @@cfg_pkgs = pkgs
+        else
+            @@cfg_pkgs = ""
         end
-
-        ret
     end
 end
 

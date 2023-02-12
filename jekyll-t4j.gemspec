@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
     s.license     = "MIT"
     s.summary     = "LaTeX support for Jekyll."
     s.description = <<-EOF
-        A Jekyll plugin providing full support of LaTeX. Capable of
-        rendering almost all packages, including tikz and chemfig.
+        A Jekyll plugin providing (nearly) full support of LaTeX. Capable of
+        rendering almost all packages, including tikz, chemfig, etc.
     EOF
 
     s.files = [

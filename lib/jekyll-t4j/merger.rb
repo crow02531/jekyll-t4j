@@ -2,15 +2,17 @@
 
 module Jekyll::T4J
     module Merger
-        @@available = true
-        @@cache = {}
+        @@table = {}
         @@rnd_range = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@".chars
 
-        def self.ask_for_merge(url, filedata, extname)
-            raise "Merge request during post processing!" unless @@available
+        def self.trim_to_dir(str)
+            str.end_with?("/") ? str : (File.dirname(str) + "/")
+        end
 
-            request = @@cache[url]
-            request = @@cache[url] = {} unless request
+        def self.ask_for_merge(url, filedata, extname)
+            url = trim_to_dir(url)
+            request = @@table[url]
+            request = @@table[url] = {} unless request
 
             entry = request.rassoc(filedata.freeze)
             return entry[0] if entry and entry[0].split(".")[1] == extname
@@ -20,28 +22,19 @@ module Jekyll::T4J
             filename.freeze
         end
 
-        # write external files
-        Jekyll::Hooks.register :documents, :post_write do |doc|
-            @@available = false
+        # write external files and clean up
+        Jekyll::Hooks.register :site, :post_write do |site|
+            site.each_site_file {|f|
+                url = trim_to_dir(f.is_a?(Jekyll::StaticFile) ? f.relative_path : f.url)
+                request = @@table[url]
 
-            url = doc.url
-            request = @@cache[url]
+                if request then
+                    request.each {|k, v| File.write(File.join(site.dest, url, k), v)}
+                    request.clear
+                end
+            }
 
-            if request then
-                url = File.dirname url unless url.end_with? "/"
-
-                request.each {|k, v|
-                    File.write File.join(doc.site.dest, url, k), v
-                }
-
-                request.clear
-            end
-        end
-
-        # clean up
-        Jekyll::Hooks.register :site, :post_write do
-            @@cache.clear
-            @@available = true
+            @@table.clear
         end
     end
 end

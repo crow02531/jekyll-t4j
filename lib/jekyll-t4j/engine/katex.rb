@@ -8,8 +8,12 @@ module Jekyll::T4J
 
         @@_katex_js_ = ExecJS.runtime.compile File.read(File.join(__dir__, "katex.js"))
 
-        def self.katex_raw(src, options)
-            @@_katex_js_.call("katex.renderToString", src, options)
+        def self.katex(snippet, options = nil)
+            snippet = split_snippet(snippet)
+            options = {} unless options
+            options[:displayMode] = snippet[1]
+
+            @@_katex_js_.call("katex.renderToString", snippet[0], options)
         end
     end
 end

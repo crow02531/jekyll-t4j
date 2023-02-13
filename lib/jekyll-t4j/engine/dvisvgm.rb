@@ -1,39 +1,47 @@
 # frozen_string_literal: true
 
 require "tmpdir"
-require "open3"
 
 module Jekyll::T4J
     module Engine
-        @@_dvisvgm_tex_ = File.join(__dir__, "dvisvgm.tex")
+        @@_pwd_fmt_ = nil
+
+        def self.setup_dvisvgm
+            if not @@_pwd_fmt_ then
+                @@_pwd_fmt_ = Dir.mktmpdir
+                at_exit {FileUtils.remove_entry @@_pwd_fmt_}
+
+                # write 'preamble.tex'
+                File.write "#{@@_pwd_fmt_}/preamble.tex", <<~HD
+                    \\documentclass{article}
+                    #{Jekyll::T4J.cfg_pkgs}
+                    \\input{#{File.join(__dir__, "dvisvgm.tex")}}
+                    \\pagenumbering{gobble}
+                    \\dump
+                HD
+
+                # call 'latex' to precompile
+                shell("latex -ini -halt-on-error -jobname=\"preamble\" \"&latex preamble\"", @@_pwd_fmt_)
+            end
+        end
 
         def self.dvisvgm_raw(snippet)
             dvisvgm_raw_bulk([snippet])[0]
         end
 
         def self.dvisvgm_raw_bulk(snippets)
-            # setup: create 'content.tex'
+            # create 'content.tex'
             pwd = Dir.mktmpdir
-            File.write "#{pwd}/content.tex", <<~HEREDOC
-                \\documentclass{article}
-                #{Jekyll::T4J.cfg_pkgs}
-                \\input{#{@@_dvisvgm_tex_}}
+            File.write "#{pwd}/content.tex", <<~HD
                 \\begin{document}
-                \\pagenumbering{gobble}
                 \\begingroup#{snippets.join("\\endgroup\\newpage\\begingroup")}\\endgroup
                 \\end{document}
-            HEREDOC
-
-            shell = ->(cmd) {
-                log, s = Open3.capture2e(cmd, :chdir => pwd)
-                raise log if not s.success?
-            }
+            HD
 
             # call 'latex' to compile: tex->dvi
-            shell.("latex -halt-on-error -quiet content")
-            shell.("latex -halt-on-error -quiet content")
+            shell("latex --fmt=\"#{File.join(@@_pwd_fmt_, "preamble.fmt")}\" -halt-on-error -time-statistics content", pwd, 2)
             # call 'dvisvgm' to convert dvi to svg(s)
-            shell.("dvisvgm -n -e -p 1- -v 3 content")
+            shell("dvisvgm -n -e -p 1- content", pwd)
 
             # fetch results
             results = []

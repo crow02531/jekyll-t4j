@@ -4,7 +4,7 @@ require "execjs"
 
 module Jekyll::T4J
     module Engine
-        KATEX_CSS_VERSION = "0.16.4"
+        KATEX_VERSION = "0.16.4"
 
         @@_katex_js_ = ExecJS.runtime.compile File.read(File.join(__dir__, "katex.js"))
 

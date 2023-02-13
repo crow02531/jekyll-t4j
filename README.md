@@ -3,10 +3,10 @@
 jekyll-t4j is a Jekyll plugin providing (nearly) full support of LaTeX.
 
 - **Comprehensive**: support almost all packages, including tikz, chemfig, etc.
-- **Fast**: employ KaTeX to boost speed. Use cache, bulk rendering.
+- **Fast**: employ KaTeX to boost speed. Use cache, precompiled preamble, bulk rendering.
 - **Server side rendering**: all stuffs are done in server.
 
-T4J integrates Jekyll with your local TeX distribution, so you need to have either [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/) installed.
+T4J integrates Jekyll with your local TeX distribution, so you need to have either [MikTeX](https://miktex.org/) or [TeX Live](https://tug.org/texlive/) installed.
 
 Feel free to write any LaTeX! &#x1F389;
 
@@ -44,7 +44,7 @@ You can learn more about T4J [here](https://github.com/crow02531/jekyll-t4j/wiki
 
 ## Installation
 
-First of all, you need to have a TeX distribution. Just download and install [MikTeX](https://miktex.org/) or [Tex Live](https://tug.org/texlive/).
+First of all, you need to have a TeX distribution. Just download and install [MikTeX](https://miktex.org/) or [TeX Live](https://tug.org/texlive/). Other TeX distirbution is also available.
 
 Then, install jekyll-t4j like other Jekyll plugins. Add this line to your application's Gemfile:
 

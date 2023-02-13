@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-unless system("latex -version", [:out, :err]=>File::NULL)
+unless system("latex -version", [:out, :err] => File::NULL)
     STDERR.puts "You are missing a TeX distribution. Please install:"
-    STDERR.puts "  MiKTeX or TeX Live"
+    STDERR.puts "  MiKTeX or TeX Live or..."
     raise "Missing TeX distribution"
 end
 
+require "open3"
 require "jekyll/cache"
 
 require "jekyll-t4j/engine/dvisvgm"
@@ -16,8 +17,8 @@ module Jekyll::T4J
         @@cache_katex = Jekyll::Cache.new "Jekyll::T4J::Katex"
         @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
 
-        @@header = <<~HEREDOC
-            <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_CSS_VERSION}/dist/katex.min.css\">
+        @@header = <<~HD
+            <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_VERSION}/dist/katex.min.css\">
             <style>
                 .katex-ext-d {
                     border-radius: 0px;
@@ -30,7 +31,8 @@ module Jekyll::T4J
                     vertical-align: middle;
                 }
             </style>
-        HEREDOC
+        HD
+        @@header.freeze
 
         def self.header
             @@header
@@ -46,13 +48,13 @@ module Jekyll::T4J
             }
 
             # normalize 'snippets'
-            snippets.map! {|s|
-                if not s.start_with?("\\") then
-                    s = split_snippet(s)
-                    s = s[1] ? "\\[#{s[0]}\\]" : "\\(#{s[0]}\\)"
+            snippets.map! {|snippet|
+                if not snippet.start_with?("\\") then
+                    s = split_snippet(snippet)
+                    snippet = s[1] ? "\\[#{s[0]}\\]" : "\\(#{s[0]}\\)"
                 end
 
-                s
+                snippet
             }
 
             # fill 'snippets' with katex and cached dvisvgm
@@ -72,8 +74,9 @@ module Jekyll::T4J
                     begin
                         r = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s], is_display_mode?(s))
                     rescue
-                        uncached[s] = r = nil
-                        unset << [i, s]
+                        uncached[s] = nil
+                        unset << i
+                        r = s
                     end
                 end
 
@@ -84,17 +87,30 @@ module Jekyll::T4J
             if not uncached.empty? then
                 # bulk render 'uncached'
                 begin
+                    setup_dvisvgm
                     uncached_snippets = uncached.keys
                     rendered = dvisvgm_raw_bulk(uncached_snippets)
                     rendered.each_index {|i| uncached[uncached_snippets[i]] = rendered[i]}
                 end
 
                 # flush 'uncached' to 'snippets' and cache them
-                unset.each {|b|
-                    s = b[1]
-                    snippets[b[0]] = gen.(uncached[s], is_display_mode?(s))
-                    @@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s] = uncached[s]
+                unset.each {|i|
+                    s = snippets[i]
+                    r = uncached[s]
+
+                    snippets[i] = gen.(r, is_display_mode?(s))
+                    @@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s] = r
                 }
+            end
+        end
+
+        def self.shell(cmd, pwd, times = 1)
+            while true do
+                break if times <= 0
+                times -= 1
+
+                log, s = Open3.capture2e(cmd, :chdir => pwd) # FIXME: shell is TOO slow!
+                raise log if not s.success?
             end
         end
 

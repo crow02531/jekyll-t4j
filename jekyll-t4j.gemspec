@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
         "lib/jekyll-t4j/engine/dvisvgm.tex",
         "lib/jekyll-t4j/engine/katex.rb",
         "lib/jekyll-t4j/engine/katex.js",
+        "lib/jekyll-t4j/engine/katex.mhchem.js",
 
         "LICENSE",
         "README.md"

@@ -13,8 +13,9 @@ module Jekyll::T4J
 
     # initialize plugin
     Jekyll::Hooks.register :site, :after_init do |site|
-        cfg = site.config["t4j"]
+        Jekyll.logger.info "Initializing T4J..."
 
+        cfg = site.config["t4j"]
         if cfg and (cfg = cfg["packages"]) then
             pkgs = String.new
 
@@ -27,6 +28,8 @@ module Jekyll::T4J
         else
             @@cfg_pkgs = ""
         end
+
+        Jekyll::T4J::Engine.setup
     end
 end
 

@@ -39,7 +39,7 @@ module Jekyll::T4J
             HD
 
             # call 'latex' to compile: tex->dvi
-            shell("latex --fmt=\"#{File.join(@@_pwd_fmt_, "preamble.fmt")}\" -halt-on-error -time-statistics content", pwd, 2)
+            shell("latex --fmt=\"#{File.join(@@_pwd_fmt_, "preamble.fmt")}\" -halt-on-error content", pwd, 2)
             # call 'dvisvgm' to convert dvi to svg(s)
             shell("dvisvgm -n -e -p 1- content", pwd)
 

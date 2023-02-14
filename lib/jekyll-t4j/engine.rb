@@ -38,6 +38,11 @@ module Jekyll::T4J
             @@header
         end
 
+        def self.setup
+            setup_katex
+            setup_dvisvgm
+        end
+
         def self.render(snippets, merger)
             gen = ->(svg_data, displayMode) {
                 "<img src=\"#{merger.(svg_data, ".svg")}\" class=\"#{
@@ -87,7 +92,6 @@ module Jekyll::T4J
             if not uncached.empty? then
                 # bulk render 'uncached'
                 begin
-                    setup_dvisvgm
                     uncached_snippets = uncached.keys
                     rendered = dvisvgm_raw_bulk(uncached_snippets)
                     rendered.each_index {|i| uncached[uncached_snippets[i]] = rendered[i]}
@@ -109,7 +113,7 @@ module Jekyll::T4J
                 break if times <= 0
                 times -= 1
 
-                log, s = Open3.capture2e(cmd, :chdir => pwd) # FIXME: shell is TOO slow!
+                log, s = Open3.capture2e(cmd, :chdir => pwd) # TODO: even the quickest 'dvisvgm' cost at least 0.3s in my laptop
                 raise log if not s.success?
             end
         end

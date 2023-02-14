@@ -41,16 +41,12 @@ module Jekyll::T4J
             # call 'latex' to compile: tex->dvi
             shell("latex --fmt=\"#{File.join(@@_pwd_fmt_, "preamble.fmt")}\" -halt-on-error content", pwd, 2)
             # call 'dvisvgm' to convert dvi to svg(s)
-            shell("dvisvgm -n -e -p 1- content", pwd)
+            shell("dvisvgm -n -e -p 1- -o %1p content", pwd)
 
             # fetch results
             results = []
-            if snippets.size == 1 then
-                results << File.read("#{pwd}/content.svg")
-            else
-                for i in 1..snippets.size
-                    results << File.read("#{pwd}/content-#{i.to_s}.svg")
-                end
+            for i in 1..snippets.size
+                results << File.read("#{pwd}/#{i.to_s}.svg")
             end
 
             # return

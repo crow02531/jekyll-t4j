@@ -83,12 +83,13 @@ module Jekyll::T4J
 
         # collect tex snippets
         site.each_site_file {|f|
-            if !f.is_a?(Jekyll::StaticFile) then
-                parts = extract(f.output)
-                if parts.size > 1 then #'f' has tex snippet(s)
-                    parts.each {|part| snippets << CGI::unescapeHTML(part[0]) if part[1]} # TODO: a subtle bug about unescaping HTML
-                    docs << [f, parts]
-                end
+            next if f.is_a?(Jekyll::StaticFile)
+            next if f.is_a?(Jekyll::Page) and not f.html?
+
+            parts = extract(f.output)
+            if parts.size > 1 then #'f' has tex snippet(s)
+                parts.each {|part| snippets << CGI::unescapeHTML(part[0]) if part[1]} # TODO: a subtle bug about unescaping HTML
+                docs << [f, parts]
             end
         }
 

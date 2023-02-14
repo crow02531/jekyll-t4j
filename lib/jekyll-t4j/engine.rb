@@ -20,6 +20,9 @@ module Jekyll::T4J
         @@header = <<~HD
             <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_VERSION}/dist/katex.min.css\">
             <style>
+                .katex {
+                    font-size: 1em;
+                }
                 .katex-ext-d {
                     border-radius: 0px;
                     display: block;

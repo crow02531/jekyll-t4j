@@ -3,12 +3,15 @@
 jekyll-t4j is a Jekyll plugin providing (nearly) full support of LaTeX.
 
 - **Comprehensive**: support almost all packages, including tikz, chemfig, etc.
-- **Fast**: employ KaTeX to boost speed. Use cache, precompiled preamble, bulk rendering.
+- **Highly optimized**: employ KaTeX to boost speed. Use cache, precompiled preamble, bulk rendering, parallel rendering.
 - **Server side rendering**: all stuffs are done in server.
 
 T4J integrates Jekyll with your local TeX distribution, so you need to have either [MikTeX](https://miktex.org/) or [TeX Live](https://tug.org/texlive/) installed.
 
 Feel free to write any LaTeX! &#x1F389;
+
+> **Warning**
+> T4J now is in rapid development, it's pretty unstable. So don't forget to check and update frequently.
 
 ## Getting Started
 

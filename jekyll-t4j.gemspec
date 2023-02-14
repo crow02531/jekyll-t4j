@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
         "README.md"
     ]
 
+    s.required_ruby_version = ">= 3.1"
     s.add_runtime_dependency "jekyll", "~> 4.1"
     s.add_runtime_dependency "execjs", "~> 2.8"
     s.requirements << "A TeX distribution"

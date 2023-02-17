@@ -1,28 +1,35 @@
 # frozen_string_literal: true
 
-require "execjs"
+require "duktape"
 
 module Jekyll::T4J
     module Engine
         KATEX_VERSION = "0.16.4"
 
-        @@_katex_js_ = nil
+        @@_katex_ctx_ = nil
 
         def self.setup_katex
-            if not @@_katex_js_ then
+            if not @@_katex_ctx_ then
                 src = File.read(File.join(__dir__, "katex.js"))
                 src << File.read(File.join(__dir__, "katex.mhchem.js")) if Jekyll::T4J.cfg_pkgs.include?("mhchem")
 
-                @@_katex_js_ = ExecJS.runtime.compile(src)
+                @@_katex_ctx_ = Duktape::Context.new
+                @@_katex_ctx_.exec_string(src)
             end
         end
 
-        def self.katex_raw(snippet, options = nil)
-            snippet = split_snippet(snippet)
-            options = {} unless options
-            options[:displayMode] = snippet[1]
+        def self.katex_raw(snippet)
+            begin
+                @@_katex_ctx_.call_prop(["katex", "renderToString"], snippet.code_in, {displayMode: snippet.display_mode?, strict: true})
+            rescue
+                nil
+            end
+        end
 
-            @@_katex_js_.call("katex.renderToString", snippet[0], options)
+        def self.katex_raw_bulk(snippets)
+            snippets.map do |snippet|
+                katex_raw(snippet)
+            end
         end
     end
 end

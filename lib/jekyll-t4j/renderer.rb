@@ -82,16 +82,16 @@ module Jekyll::T4J
         docs = []
 
         # collect tex snippets
-        site.each_site_file {|f|
+        site.each_site_file do |f|
             next if f.is_a?(Jekyll::StaticFile)
             next if f.is_a?(Jekyll::Page) and not f.html?
 
             parts = extract(f.output)
             if parts.size > 1 then #'f' has tex snippet(s)
-                parts.each {|part| snippets << CGI::unescapeHTML(part[0]) if part[1]} # TODO: a subtle bug about unescaping HTML
+                parts.each {|part| snippets << Jekyll::T4J::Snippet.new(CGI::unescapeHTML part[0]) if part[1]}
                 docs << [f, parts]
             end
-        }
+        end
 
         # render 'snippets'
         Jekyll::T4J::Engine.render(snippets, ->(data, extname) {Jekyll::T4J::Merger.ask_for_merge(data, extname)})

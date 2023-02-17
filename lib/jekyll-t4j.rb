@@ -14,6 +14,7 @@ module Jekyll::T4J
     # initialize plugin
     Jekyll::Hooks.register :site, :after_init do |site|
         Jekyll.logger.info "Initializing T4J..."
+        t0 = Time.now
 
         cfg = site.config["t4j"]
         if cfg and (cfg = cfg["packages"]) then
@@ -30,9 +31,11 @@ module Jekyll::T4J
         end
 
         Jekyll::T4J::Engine.setup
+        Jekyll.logger.info "", "done in #{(Time.now - t0).round(3)} seconds."
     end
 end
 
+require "jekyll-t4j/snippet"
 require "jekyll-t4j/merger"
 require "jekyll-t4j/engine"
 require "jekyll-t4j/renderer"

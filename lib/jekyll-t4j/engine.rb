@@ -7,7 +7,6 @@ unless system("latex -version", [:out, :err] => File::NULL)
 end
 
 require "open3"
-require "jekyll/cache"
 
 require "jekyll-t4j/engine/dvisvgm"
 require "jekyll-t4j/engine/katex"
@@ -17,7 +16,7 @@ module Jekyll::T4J
         @@cache_katex = Jekyll::Cache.new "Jekyll::T4J::Katex"
         @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
 
-        @@header = <<~HD
+        HEADER = <<~HD
             <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_VERSION}/dist/katex.min.css\">
             <style>
                 .katex {
@@ -31,14 +30,16 @@ module Jekyll::T4J
                 .katex-ext-i {
                     border-radius: 0px;
                     display: inline;
-                    vertical-align: middle;
+                    vertical-align: sub;
                 }
             </style>
         HD
-        @@header.freeze
+        .freeze
+
+        private_constant :HEADER
 
         def self.header
-            @@header
+            HEADER
         end
 
         def self.setup
@@ -47,95 +48,79 @@ module Jekyll::T4J
         end
 
         def self.render(snippets, merger)
-            gen = ->(svg_data, displayMode) {
-                "<img src=\"#{merger.(svg_data, ".svg")}\" class=\"#{
+            gen = ->(svgData, displayMode) {
+                "<img src=\"#{merger.(svgData, ".svg")}\" class=\"#{
                     displayMode ? "katex-ext-d" : "katex-ext-i"
                 }\" style=\"height:#{
-                    (svg_data[/height='(\S+?)pt'/, 1].to_f * 0.1).to_s[/\d+\.\d{1,4}/]
+                    (svgData[/height='(\S+?)pt'/, 1].to_f * 0.1).round(4)
                 }em\">"
             }
 
-            # normalize 'snippets'
-            snippets.map! {|snippet|
-                if not snippet.start_with?("\\") then
-                    s = split_snippet(snippet)
-                    snippet = s[1] ? "\\[#{s[0]}\\]" : "\\(#{s[0]}\\)"
-                end
+            # 'snippets' << caches
+            uncached = {} #act as hash set
+            snippets.each_with_index do |s, i|
+                r = nil
 
-                snippet
-            }
-
-            # fill 'snippets' with katex and cached dvisvgm
-            unset = []
-            uncached = {}
-            snippets.each_index {|i|
-                s = snippets[i]
-                r = @@cache_katex.getset(s) {
+                begin
+                    r = @@cache_katex[s.source]
+                rescue
                     begin
-                        katex_raw(s, {strict: true})
-                    rescue
-                        "NIL"
-                    end
-                }
-
-                if r == "NIL" then
-                    begin
-                        r = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s], is_display_mode?(s))
+                        r = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
                     rescue
                         uncached[s] = nil
-                        unset << i
-                        r = s
                     end
                 end
 
-                snippets[i] = r
-            }
+                snippets[i] = r if r
+            end
 
-            # render 'uncached'
-            if not uncached.empty? then
-                # bulk render 'uncached'
+            # finish if no 'uncached' found
+            return if uncached.empty?
+            uncached = uncached.keys
+
+            # otherwise render 'uncached' with katex and cache them
+            katex_raw_bulk(uncached).each_with_index do |result, i|
+                @@cache_katex[uncached[i].source] = result if result
+            end
+
+            # 'snippets' << rendering results
+            uncached = {} #act as hash set again
+            snippets.each_with_index do |s, i|
+                next if !s.is_a?(Snippet)
+
                 begin
-                    uncached_snippets = uncached.keys
-                    rendered = dvisvgm_raw_bulk(uncached_snippets)
-                    rendered.each_index {|i| uncached[uncached_snippets[i]] = rendered[i]}
+                    snippets[i] = @@cache_katex[s.source]
+                rescue
+                    uncached[s] = nil
                 end
+            end
 
-                # flush 'uncached' to 'snippets' and cache them
-                unset.each {|i|
-                    s = snippets[i]
-                    r = uncached[s]
+            # finish if no 'uncached' found
+            return if uncached.empty?
+            uncached = uncached.keys
 
-                    snippets[i] = gen.(r, is_display_mode?(s))
-                    @@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s] = r
-                }
+            # otherwise render 'uncached' with dvisvgm and cache them
+            dvisvgm_raw_bulk(uncached).each_with_index do |result, i|
+                @@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + uncached[i].source] = result
+            end
+
+            # 'snippets' << rendering results
+            snippets.each_with_index do |s, i|
+                next if !s.is_a?(Snippet)
+
+                begin
+                    snippets[i] = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
+                rescue
+                    # impossible!
+                end
             end
         end
 
-        def self.shell(cmd, pwd, times = 1)
-            while true do
-                break if times <= 0
-                times -= 1
-
+        def self.shell(cmd, pwd, n = 1)
+            n.times do
                 log, s = Open3.capture2e(cmd, :chdir => pwd) # TODO: even the quickest 'dvisvgm' cost at least 0.3s in my laptop
                 raise log if not s.success?
             end
-        end
-
-        def self.is_display_mode?(snippet)
-            snippet.start_with?("\\[") or snippet.start_with?("$$")
-        end
-
-        def self.split_snippet(snippet)
-            displayMode = false
-            range = 2..-3
-
-            if snippet.start_with?("\\[") or snippet.start_with?("$$") then
-                displayMode = true
-            elsif snippet.start_with?("$") then
-                range = 1..-2
-            end
-
-            [snippet[range], displayMode]
         end
     end
 end

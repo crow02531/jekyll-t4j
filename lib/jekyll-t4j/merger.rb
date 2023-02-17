@@ -20,10 +20,10 @@ module Jekyll::T4J
 
         # write external files and clean up
         Jekyll::Hooks.register :site, :post_write, priority: Jekyll::Hooks::PRIORITY_MAP[:low] do |site|
-            @@table.each {|filedata, request|
+            @@table.each do |filedata, request|
                 basename = request[0]
                 request[1].each {|extname| File.write(File.join(site.dest, basename + extname), filedata)}
-            }
+            end
 
             @@table.clear
         end

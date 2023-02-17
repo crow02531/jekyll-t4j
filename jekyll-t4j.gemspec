@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
     s.license     = "MIT"
     s.summary     = "LaTeX support for Jekyll."
     s.description = <<-EOF
-        A Jekyll plugin providing (nearly) full support of LaTeX.
+        An optimized Jekyll plugin providing (nearly) full support of LaTeX.
     EOF
 
     s.files = [
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
         "lib/jekyll-t4j/version.rb",
         "lib/jekyll-t4j/merger.rb",
         "lib/jekyll-t4j/renderer.rb",
+        "lib/jekyll-t4j/snippet.rb",
         "lib/jekyll-t4j/engine.rb",
         "lib/jekyll-t4j/engine/dvisvgm.rb",
         "lib/jekyll-t4j/engine/dvisvgm.tex",
@@ -30,8 +31,7 @@ Gem::Specification.new do |s|
         "README.md"
     ]
 
-    s.required_ruby_version = ">= 3.1"
     s.add_runtime_dependency "jekyll", "~> 4.1"
-    s.add_runtime_dependency "execjs", "~> 2.8"
+    s.add_runtime_dependency "duktape", "~> 2.7"
     s.requirements << "A TeX distribution"
 end

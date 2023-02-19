@@ -8,38 +8,29 @@ end
 
 require "open3"
 
-require "jekyll-t4j/engine/dvisvgm"
 require "jekyll-t4j/engine/katex"
+require "jekyll-t4j/engine/dvisvgm"
 
 module Jekyll::T4J
     module Engine
-        @@cache_katex = Jekyll::Cache.new "Jekyll::T4J::Katex"
-        @@cache_dvisvgm = Jekyll::Cache.new "Jekyll::T4J::Dvisvgm"
-
-        HEADER = <<~HD
-            <link rel=\"stylesheet\" href=\"https://unpkg.com/katex@#{KATEX_VERSION}/dist/katex.min.css\">
-            <style>
-                .katex {
-                    font-size: 1em;
-                }
-                .katex-ext-d {
-                    border-radius: 0px;
-                    display: block;
-                    margin: 5px auto;
-                }
-                .katex-ext-i {
-                    border-radius: 0px;
-                    display: inline;
-                    vertical-align: sub;
-                }
-            </style>
-        HD
-        .freeze
-
-        private_constant :HEADER
+        @@cache_katex = Jekyll::Cache.new "Jekyll-T4J::Katex"
+        @@cache_dvisvgm = Jekyll::Cache.new "Jekyll-T4J::Dvisvgm"
 
         def self.header
-            HEADER
+            <<~HD
+                <script>
+                    document.addEventListener("DOMContentLoaded", () => {
+                        let z = document.body.getElementsByTagName("include")
+                        for (let i = 0; i < z.length; ++i) {
+                            let elmnt = z[i]
+                            let xhttp = new XMLHttpRequest()
+                            xhttp.onreadystatechange = function() { elmnt.innerHTML = this.responseText }
+                            xhttp.open("GET", elmnt.getAttribute("src"), true)
+                            xhttp.send()
+                        }
+                    })
+                </script>
+            HD
         end
 
         def self.setup
@@ -48,12 +39,15 @@ module Jekyll::T4J
         end
 
         def self.render(snippets, merger)
-            gen = ->(svgData, displayMode) {
-                "<img src=\"#{merger.(svgData, ".svg")}\" class=\"#{
-                    displayMode ? "katex-ext-d" : "katex-ext-i"
-                }\" style=\"height:#{
-                    (svgData[/height='(\S+?)pt'/, 1].to_f * 0.1).round(4)
-                }em\">"
+            gen_svg = ->(svg, displayMode) {
+                "<embed src=\"#{merger.(svg, ".svg")}\" style=\"height:#{
+                    (svg[/height='(\S+?)pt'/, 1].to_f * 0.1).round(4)
+                }em;#{
+                    displayMode ? "display:block;margin:auto" : "display:inline;vertical-align:middle"
+                }\">"
+            }
+            gen_mathml = ->(mathml) {
+                "<include src=\"#{merger.(mathml, ".xml")}\"></include>"
             }
 
             # 'snippets' << caches
@@ -62,10 +56,10 @@ module Jekyll::T4J
                 r = nil
 
                 begin
-                    r = @@cache_katex[s.source]
+                    r = gen_mathml.(@@cache_katex[s.source])
                 rescue
                     begin
-                        r = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
+                        r = gen_svg.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
                     rescue
                         uncached[s] = nil
                     end
@@ -89,7 +83,7 @@ module Jekyll::T4J
                 next if !s.is_a?(Snippet)
 
                 begin
-                    snippets[i] = @@cache_katex[s.source]
+                    snippets[i] = gen_mathml.(@@cache_katex[s.source])
                 rescue
                     uncached[s] = nil
                 end
@@ -109,7 +103,7 @@ module Jekyll::T4J
                 next if !s.is_a?(Snippet)
 
                 begin
-                    snippets[i] = gen.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
+                    snippets[i] = gen_svg.(@@cache_dvisvgm[Jekyll::T4J.cfg_pkgs + s.source], s.display_mode?)
                 rescue
                     # impossible!
                 end

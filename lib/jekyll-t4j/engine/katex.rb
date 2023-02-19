@@ -20,7 +20,13 @@ module Jekyll::T4J
 
         def self.katex_raw(snippet)
             begin
-                @@_katex_ctx_.call_prop(["katex", "renderToString"], snippet.code_in, {displayMode: snippet.display_mode?, strict: true})
+                @@_katex_ctx_.call_prop(["katex", "renderToString"], snippet.code_in,
+                    {
+                        displayMode: snippet.display_mode?,
+                        output: "mathml",
+                        strict: true
+                    }
+                )[20..-8]
             rescue
                 nil
             end
@@ -28,7 +34,7 @@ module Jekyll::T4J
 
         def self.katex_raw_bulk(snippets)
             snippets.map do |snippet|
-                katex_raw(snippet)
+                katex_raw(snippet) # TODO: parallel
             end
         end
     end
